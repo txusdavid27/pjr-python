@@ -102,26 +102,27 @@
     "adaptacion": "",
     "asistencia": [
       {
-        "nombre": "Alejandro Colorado ",
         "estado": "asiste",
-        "fecha": "2026-05-14T22:22:41.470Z"
+        "fecha": "2026-05-14T22:22:41.470Z",
+        "nombre": "Alejandro Colorado "
       }
     ],
     "bitacora": "",
     "central": "",
-    "dia": "",
+    "dia": "3",
     "escudo": "https://ff993086508a898bfa88-0dc521a9b786f30ca78e3891f22e6188.ssl.cf3.rackcdn.com/71/2c/59/45/24/ec/e3/1b/c4/ba/df/81/20/f2/62/ce/6627004f0dc04.jpeg",
+    "fairplay_override": null,
     "formacion_inicial": "",
     "formacion_secundaria": "",
-    "goles_pjr": "",
-    "goles_rival": "",
-    "hora": "",
+    "goles_pjr": "1",
+    "goles_rival": "1",
+    "hora": "7:00 AM",
     "id": 4,
     "linea_a": "",
     "linea_b": "",
-    "local": "",
+    "local": "Local",
     "mejor_tiempo": "",
-    "mes": "",
+    "mes": "Mayo",
     "mvp": "",
     "nombre_rival": "Santa Isabel FS",
     "orden": 4,
@@ -130,10 +131,9 @@
     "recaudo_total": "",
     "reservas": "",
     "suplentes": "",
-    "titulares": "",
-    "tipo": "partido",
     "terminado": false,
-    "fairplay_override": null
+    "tipo": "partido",
+    "titulares": ""
   },
   {
     "orden": 5,
@@ -543,5 +543,19 @@
     "tipo": "partido",
     "terminado": false,
     "fairplay_override": null
+  },
+  {
+    "cobro": 12000,
+    "dia": "26",
+    "escudo": "https://ff993086508a898bfa88-0dc521a9b786f30ca78e3891f22e6188.ssl.cf3.rackcdn.com/5b/ca/6c/65/90/cc/d4/3d/63/72/7b/20/5a/e2/2d/01/68196c0c72cc4.jpeg",
+    "goles_pjr": "1",
+    "goles_rival": "0",
+    "hora": "7:00 AM",
+    "id": 22,
+    "local": "Santo Tomas",
+    "mes": "Abril",
+    "nombre_rival": "El Sky",
+    "terminado": false,
+    "tipo": "amistoso"
   }
 ]

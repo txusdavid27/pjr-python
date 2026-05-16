@@ -1,1 +1,82 @@
-[]
+[
+  {
+    "id_partido": 22,
+    "apodo": "Juancho",
+    "rol": "",
+    "minutos": 80,
+    "paga": 1,
+    "id": 1
+  },
+  {
+    "id_partido": 22,
+    "apodo": "illescas",
+    "rol": "",
+    "minutos": 80,
+    "paga": 1,
+    "id": 2
+  },
+  {
+    "id_partido": 22,
+    "apodo": "alejo",
+    "rol": "",
+    "minutos": 80,
+    "paga": 1,
+    "id": 3
+  },
+  {
+    "id_partido": 22,
+    "apodo": "maldonado",
+    "rol": "",
+    "minutos": 80,
+    "paga": 1,
+    "id": 4
+  },
+  {
+    "id_partido": 22,
+    "apodo": "colorado",
+    "rol": "",
+    "minutos": 80,
+    "paga": 1,
+    "id": 5
+  },
+  {
+    "id_partido": 22,
+    "apodo": "López ",
+    "rol": "",
+    "minutos": 80,
+    "paga": 1,
+    "id": 6
+  },
+  {
+    "id_partido": 22,
+    "apodo": "rodri",
+    "rol": "",
+    "minutos": 80,
+    "paga": 1,
+    "id": 7
+  },
+  {
+    "id_partido": 22,
+    "apodo": "gsus",
+    "rol": "",
+    "minutos": 80,
+    "paga": 1,
+    "id": 8
+  },
+  {
+    "id_partido": 22,
+    "apodo": "Santy",
+    "rol": "",
+    "minutos": 80,
+    "paga": 1,
+    "id": 9
+  },
+  {
+    "id_partido": 22,
+    "apodo": "Cuéllar",
+    "rol": "",
+    "minutos": 80,
+    "paga": 1,
+    "id": 10
+  }
+]

@@ -865,6 +865,7 @@ export default function PublicPartidos() {
                 open={showMatchForm}
                 onOpenChange={setShowMatchForm}
                 partidos={partidos}
+                onSuccess={loadData}
             />
         </div>
     )

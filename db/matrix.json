@@ -6,16 +6,18 @@
     "jugados": 0,
     "estimado": 0,
     "pagado_total": 0,
-    "balance_bruto": 0
+    "balance_bruto": 0,
+    "22": 0
   },
   {
     "id": 3.0,
     "nombre": "NICOLÁS ILLESCAS RAMOS",
     "apodo": "illescas",
-    "jugados": 0,
-    "estimado": 0,
-    "pagado_total": 0,
-    "balance_bruto": 0
+    "jugados": 1,
+    "estimado": 15000,
+    "pagado_total": 1,
+    "balance_bruto": 0,
+    "22": 1
   },
   {
     "id": 5.0,
@@ -24,7 +26,8 @@
     "jugados": 0,
     "estimado": 0,
     "pagado_total": 0,
-    "balance_bruto": 0
+    "balance_bruto": 0,
+    "22": 0
   },
   {
     "id": 6.0,
@@ -33,7 +36,8 @@
     "jugados": 0,
     "estimado": 0,
     "pagado_total": 0,
-    "balance_bruto": 0
+    "balance_bruto": 0,
+    "22": 0
   },
   {
     "id": 7.0,
@@ -42,16 +46,18 @@
     "jugados": 0,
     "estimado": 0,
     "pagado_total": 0,
-    "balance_bruto": 0
+    "balance_bruto": 0,
+    "22": 0
   },
   {
     "id": 8.0,
     "nombre": "Jesus David Traslavina Fuentes",
     "apodo": "gsus",
-    "jugados": 0,
-    "estimado": 0,
-    "pagado_total": 0,
-    "balance_bruto": 0
+    "jugados": 1,
+    "estimado": 15000,
+    "pagado_total": 1,
+    "balance_bruto": 0,
+    "22": 1
   },
   {
     "id": 9.0,
@@ -60,7 +66,8 @@
     "jugados": 0,
     "estimado": 0,
     "pagado_total": 0,
-    "balance_bruto": 0
+    "balance_bruto": 0,
+    "22": 0
   },
   {
     "id": 10.0,
@@ -69,7 +76,8 @@
     "jugados": 0,
     "estimado": 0,
     "pagado_total": 0,
-    "balance_bruto": 0
+    "balance_bruto": 0,
+    "22": 0
   },
   {
     "id": 11.0,
@@ -78,7 +86,8 @@
     "jugados": 0,
     "estimado": 0,
     "pagado_total": 0,
-    "balance_bruto": 0
+    "balance_bruto": 0,
+    "22": 0
   },
   {
     "id": 12.0,
@@ -87,16 +96,18 @@
     "jugados": 0,
     "estimado": 0,
     "pagado_total": 0,
-    "balance_bruto": 0
+    "balance_bruto": 0,
+    "22": 0
   },
   {
     "id": 14.0,
     "nombre": "Nicolás Rodríguez Murillo",
     "apodo": "rodri",
-    "jugados": 0,
-    "estimado": 0,
-    "pagado_total": 0,
-    "balance_bruto": 0
+    "jugados": 1,
+    "estimado": 15000,
+    "pagado_total": 1,
+    "balance_bruto": 0,
+    "22": 1
   },
   {
     "id": 15.0,
@@ -105,7 +116,8 @@
     "jugados": 0,
     "estimado": 0,
     "pagado_total": 0,
-    "balance_bruto": 0
+    "balance_bruto": 0,
+    "22": 0
   },
   {
     "id": 17.0,
@@ -114,7 +126,8 @@
     "jugados": 0,
     "estimado": 0,
     "pagado_total": 0,
-    "balance_bruto": 0
+    "balance_bruto": 0,
+    "22": 0
   },
   {
     "id": 18.0,
@@ -123,7 +136,8 @@
     "jugados": 0,
     "estimado": 0,
     "pagado_total": 0,
-    "balance_bruto": 0
+    "balance_bruto": 0,
+    "22": 0
   },
   {
     "id": 20.0,
@@ -132,7 +146,8 @@
     "jugados": 0,
     "estimado": 0,
     "pagado_total": 0,
-    "balance_bruto": 0
+    "balance_bruto": 0,
+    "22": 0
   },
   {
     "id": 21.0,
@@ -141,7 +156,8 @@
     "jugados": 0,
     "estimado": 0,
     "pagado_total": 0,
-    "balance_bruto": 0
+    "balance_bruto": 0,
+    "22": 0
   },
   {
     "id": 22.0,
@@ -150,7 +166,8 @@
     "jugados": 0,
     "estimado": 0,
     "pagado_total": 0,
-    "balance_bruto": 0
+    "balance_bruto": 0,
+    "22": 0
   },
   {
     "id": 24.0,
@@ -159,7 +176,8 @@
     "jugados": 0,
     "estimado": 0,
     "pagado_total": 0,
-    "balance_bruto": 0
+    "balance_bruto": 0,
+    "22": 0
   },
   {
     "id": 25.0,
@@ -168,7 +186,8 @@
     "jugados": 0,
     "estimado": 0,
     "pagado_total": 0,
-    "balance_bruto": 0
+    "balance_bruto": 0,
+    "22": 0
   },
   {
     "id": 27.0,
@@ -177,7 +196,8 @@
     "jugados": 0,
     "estimado": 0,
     "pagado_total": 0,
-    "balance_bruto": 0
+    "balance_bruto": 0,
+    "22": 0
   },
   {
     "id": 29.0,
@@ -186,7 +206,8 @@
     "jugados": 0,
     "estimado": 0,
     "pagado_total": 0,
-    "balance_bruto": 0
+    "balance_bruto": 0,
+    "22": 0
   },
   {
     "id": 31.0,
@@ -195,16 +216,18 @@
     "jugados": 0,
     "estimado": 0,
     "pagado_total": 0,
-    "balance_bruto": 0
+    "balance_bruto": 0,
+    "22": 0
   },
   {
     "id": 32.0,
     "nombre": "CESAR ALEJANDRO DUITAMA GALINDO",
     "apodo": "alejo",
-    "jugados": 0,
-    "estimado": 0,
-    "pagado_total": 0,
-    "balance_bruto": 0
+    "jugados": 1,
+    "estimado": 15000,
+    "pagado_total": 1,
+    "balance_bruto": 0,
+    "22": 1
   },
   {
     "id": 33.0,
@@ -213,7 +236,8 @@
     "jugados": 0,
     "estimado": 0,
     "pagado_total": 0,
-    "balance_bruto": 0
+    "balance_bruto": 0,
+    "22": 0
   },
   {
     "id": 34.0,
@@ -222,16 +246,18 @@
     "jugados": 0,
     "estimado": 0,
     "pagado_total": 0,
-    "balance_bruto": 0
+    "balance_bruto": 0,
+    "22": 0
   },
   {
     "id": 36.0,
     "nombre": "Felipe Maldonado",
     "apodo": "maldonado",
-    "jugados": 0,
-    "estimado": 0,
-    "pagado_total": 0,
-    "balance_bruto": 0
+    "jugados": 1,
+    "estimado": 15000,
+    "pagado_total": 1,
+    "balance_bruto": 0,
+    "22": 1
   },
   {
     "id": 37.0,
@@ -240,52 +266,58 @@
     "jugados": 0,
     "estimado": 0,
     "pagado_total": 0,
-    "balance_bruto": 0
+    "balance_bruto": 0,
+    "22": 0
   },
   {
     "id": 38.0,
     "nombre": "Alejandro Colorado ",
     "apodo": "colorado",
-    "jugados": 0,
-    "estimado": 0,
-    "pagado_total": 0,
-    "balance_bruto": 0
+    "jugados": 1,
+    "estimado": 15000,
+    "pagado_total": 1,
+    "balance_bruto": 0,
+    "22": 1
   },
   {
     "id": 41,
     "nombre": "Daniel Mauricio Cuéllar Manrique",
     "apodo": "Cuéllar",
-    "jugados": 0,
-    "estimado": 0,
-    "pagado_total": 0,
-    "balance_bruto": 0
+    "jugados": 1,
+    "estimado": 15000,
+    "pagado_total": 1,
+    "balance_bruto": 0,
+    "22": 1
   },
   {
     "id": 42,
     "nombre": "Juan José Santoya Medina",
     "apodo": "Juancho",
-    "jugados": 0,
-    "estimado": 0,
-    "pagado_total": 0,
-    "balance_bruto": 0
+    "jugados": 1,
+    "estimado": 15000,
+    "pagado_total": 1,
+    "balance_bruto": 0,
+    "22": 1
   },
   {
     "id": 43,
     "nombre": "Juan David Maldonado",
     "apodo": "Juancho",
-    "jugados": 0,
-    "estimado": 0,
-    "pagado_total": 0,
-    "balance_bruto": 0
+    "jugados": 1,
+    "estimado": 15000,
+    "pagado_total": 1,
+    "balance_bruto": 0,
+    "22": 1
   },
   {
     "id": 45,
     "nombre": "Iván Santiago Ruiz Cardozo",
     "apodo": "Santy",
-    "jugados": 0,
-    "estimado": 0,
-    "pagado_total": 0,
-    "balance_bruto": 0
+    "jugados": 1,
+    "estimado": 15000,
+    "pagado_total": 1,
+    "balance_bruto": 0,
+    "22": 1
   },
   {
     "id": 46,
@@ -294,7 +326,8 @@
     "jugados": 0,
     "estimado": 0,
     "pagado_total": 0,
-    "balance_bruto": 0
+    "balance_bruto": 0,
+    "22": 0
   },
   {
     "id": 47,
@@ -303,7 +336,8 @@
     "jugados": 0,
     "estimado": 0,
     "pagado_total": 0,
-    "balance_bruto": 0
+    "balance_bruto": 0,
+    "22": 0
   },
   {
     "id": 48,
@@ -312,7 +346,8 @@
     "jugados": 0,
     "estimado": 0,
     "pagado_total": 0,
-    "balance_bruto": 0
+    "balance_bruto": 0,
+    "22": 0
   },
   {
     "id": 49,
@@ -321,15 +356,17 @@
     "jugados": 0,
     "estimado": 0,
     "pagado_total": 0,
-    "balance_bruto": 0
+    "balance_bruto": 0,
+    "22": 0
   },
   {
     "id": 50,
     "nombre": "Tomás López Ospina",
     "apodo": "López ",
-    "jugados": 0,
-    "estimado": 0,
-    "pagado_total": 0,
-    "balance_bruto": 0
+    "jugados": 1,
+    "estimado": 15000,
+    "pagado_total": 1,
+    "balance_bruto": 0,
+    "22": 1
   }
 ]

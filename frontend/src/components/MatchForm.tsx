@@ -14,9 +14,10 @@ interface MatchFormProps {
     open: boolean
     onOpenChange: (open: boolean) => void
     partidos: any[]
+    onSuccess?: () => void
 }
 
-export function MatchForm({ open, onOpenChange, partidos }: MatchFormProps) {
+export function MatchForm({ open, onOpenChange, partidos, onSuccess }: MatchFormProps) {
     const [loading, setLoading] = React.useState(false)
     const [success, setSuccess] = React.useState(false)
     const [error, setError] = React.useState("")
@@ -141,8 +142,10 @@ export function MatchForm({ open, onOpenChange, partidos }: MatchFormProps) {
             setSuccess(true)
             setTimeout(() => {
                 onOpenChange(false)
-                window.location.reload()
-            }, 1000)
+                if (onSuccess) {
+                    onSuccess()
+                }
+            }, 800)
         } catch (err: any) {
             setError(err.message)
         } finally {
