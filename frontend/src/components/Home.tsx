@@ -52,8 +52,10 @@ export default function Home() {
                 loop
                 muted
                 playsInline
+                preload="metadata"
+                poster="/logo.png"
                 className="absolute inset-0 w-full h-full object-cover z-0 pointer-events-none select-none"
-                src="/Signo.mp4"
+                src="/Signo_opt.mp4"
             />
 
             {/* ── Dark overlay (so the video reads like a shadow behind UI) ── */}
