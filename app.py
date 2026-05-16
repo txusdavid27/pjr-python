@@ -210,35 +210,34 @@ def check_in_match(partido_id):
     data = request.json
     if not data or 'lat' not in data or 'lng' not in data or 'apodo' not in data:
         return jsonify({"success": False, "message": "Faltan datos de ubicación o apodo"}), 400
-        
+
     lat = float(data['lat'])
     lng = float(data['lng'])
     apodo = data['apodo']
-    
+
+    # Coordenadas fijas de la sede PJR FC — radio de 1000 metros
+    SEDE_LAT = 4.790718900374112
+    SEDE_LNG = -74.0554481431427
+    RADIO_METROS = 1000
+
     try:
         partido = db_manager.get_record("partido", partido_id)
         if not partido:
             return jsonify({"success": False, "message": "Partido no encontrado"}), 404
-            
+
         if partido.get("primero_en_llegar"):
             if partido.get("primero_en_llegar") == apodo:
-                return jsonify({"success": True, "message": "Ya eres el primero en llegar!"})
+                return jsonify({"success": True, "message": "¡Ya eres el primero en llegar!"})
             return jsonify({"success": False, "message": f"Alguien más ya llegó primero: {partido.get('primero_en_llegar')}"}), 400
-            
-        plat = partido.get("latitud")
-        plng = partido.get("longitud")
-        
-        if not plat or not plng:
-            return jsonify({"success": False, "message": "El partido no tiene ubicación configurada"}), 400
-            
-        distancia = haversine(lat, lng, float(plat), float(plng))
-        if distancia <= 500:
+
+        distancia = haversine(lat, lng, SEDE_LAT, SEDE_LNG)
+        if distancia <= RADIO_METROS:
             partido["primero_en_llegar"] = apodo
             db_manager.update_record("partido", partido_id, partido)
             return jsonify({"success": True, "message": "¡Felicidades! Eres el primero en llegar, ganaste el bono de $5.000."})
         else:
-            return jsonify({"success": False, "message": f"Estás muy lejos de la cancha. Distancia: {distancia:.0f} metros. Debes estar a menos de 500m."}), 400
-            
+            return jsonify({"success": False, "message": f"Estás muy lejos de la sede. Distancia: {distancia:.0f} metros. Debes estar a menos de {RADIO_METROS}m."}), 400
+
     except Exception as e:
         return jsonify({"success": False, "message": str(e)}), 400
 
