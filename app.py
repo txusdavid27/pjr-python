@@ -238,6 +238,18 @@ def check_in_match(partido_id):
     except Exception as e:
         return jsonify({"success": False, "message": str(e)}), 400
 
+@app.route("/api/bulk/sync_matrix", methods=["POST"])
+def bulk_sync_matrix():
+    data = request.json
+    if not isinstance(data, list):
+        return jsonify({"success": False, "message": "Expected a list of changes"}), 400
+        
+    try:
+        db_manager.sync_matrix_participaciones(data)
+        return jsonify({"success": True, "message": "Matrix synchronized successfully"})
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)}), 400
+
 if __name__ == "__main__":
     print(f"🚀 Server running on http://localhost:{PORT}")
     print(f"⚡ Mode: Local JSON Database")

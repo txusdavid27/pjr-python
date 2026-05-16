@@ -477,6 +477,52 @@ class DatabaseManager:
             if cambios_totales:
                 self._save("jugador", jugadores)
 
+    def sync_matrix_participaciones(self, changes):
+        """
+        changes: list of dicts with { "apodo": str, "id_partido": int, "action": "add" | "remove" }
+        """
+        with self.lock:
+            participaciones = self._load("participacion")
+            changed_apodos = set()
+            
+            for change in changes:
+                apodo = change.get("apodo")
+                id_partido = change.get("id_partido")
+                action = change.get("action")
+                
+                if not apodo or not id_partido or not action:
+                    continue
+                    
+                if action == "add":
+                    # Check if exists
+                    exists = any(p for p in participaciones if p.get("apodo") == apodo and p.get("id_partido") == id_partido)
+                    if not exists:
+                        new_id = self._get_next_id(participaciones, "id")
+                        participaciones.append({
+                            "id": new_id,
+                            "id_partido": id_partido,
+                            "apodo": apodo,
+                            "rol": "",
+                            "minutos": 0,
+                            "paga": 1
+                        })
+                        changed_apodos.add(apodo)
+                
+                elif action == "remove":
+                    # Remove all matching
+                    to_remove = [p for p in participaciones if p.get("apodo") == apodo and p.get("id_partido") == id_partido]
+                    if to_remove:
+                        participaciones = [p for p in participaciones if p not in to_remove]
+                        changed_apodos.add(apodo)
+            
+            if changed_apodos:
+                self._save("participacion", participaciones)
+                
+        # Rebuild matrix and recalculate outside the load lock to avoid nesting
+        if changed_apodos:
+            self.rebuild_matrix()
+            for apodo in changed_apodos:
+                self.recalculate_jugador(apodo)
 
     def rebuild_matrix(self):
         with self.lock:

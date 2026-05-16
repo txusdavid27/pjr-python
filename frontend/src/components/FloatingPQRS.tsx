@@ -15,7 +15,7 @@ let globalAudio: HTMLAudioElement | null = null
 function getGlobalAudio() {
     if (!globalAudio) {
         globalAudio = new Audio("/simplemente.mp3")
-        globalAudio.loop = true
+        globalAudio.loop = false
         globalAudio.volume = 0.35
     }
     return globalAudio

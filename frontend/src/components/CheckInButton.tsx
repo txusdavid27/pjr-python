@@ -1,9 +1,11 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { MapPin, Navigation } from "lucide-react"
+import { useAuth } from "@/contexts/AuthContext"
 
 export function CheckInButton({ open, onOpenChange }: { open: boolean, onOpenChange: (open: boolean) => void }) {
+    const { playerDoc } = useAuth()
     const [partidos, setPartidos] = useState<any[]>([])
     const [jugadores, setJugadores] = useState<any[]>([])
     
@@ -27,6 +29,17 @@ export function CheckInButton({ open, onOpenChange }: { open: boolean, onOpenCha
             setStatus(null)
         }
     }, [open])
+
+    const loggedInPlayer = useMemo(() => {
+        if (!playerDoc || !jugadores.length) return null;
+        return jugadores.find(p => String(p.documento || "") === playerDoc || String(p.contacto_propio || "").replace(/\.0$/, "").trim() === playerDoc);
+    }, [playerDoc, jugadores]);
+
+    useEffect(() => {
+        if (loggedInPlayer) {
+            setSelectedApodo(loggedInPlayer.apodo)
+        }
+    }, [loggedInPlayer])
 
     const handleCheckIn = () => {
         if (!selectedPartido || !selectedApodo) {
@@ -99,8 +112,9 @@ export function CheckInButton({ open, onOpenChange }: { open: boolean, onOpenCha
                             Soy...
                         </label>
                         <select
-                            className="w-full h-10 rounded-md border border-primary/30 bg-zinc-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                            className={`w-full h-10 rounded-md border border-primary/30 bg-zinc-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary ${loggedInPlayer ? "opacity-60 cursor-not-allowed" : ""}`}
                             value={selectedApodo}
+                            disabled={!!loggedInPlayer}
                             onChange={(e) => setSelectedApodo(e.target.value)}
                         >
                             <option value="">Seleccione su jugador...</option>

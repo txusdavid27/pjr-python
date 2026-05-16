@@ -16,6 +16,7 @@ import { Label } from "@/components/ui/label"
 import { CheckCircle2, ChevronDown, Loader2 } from "lucide-react"
 import * as React from "react"
 import { Player } from "../columns"
+import { parseMatchDate } from "@/lib/utils"
 
 interface ParticipationFormProps {
     open: boolean
@@ -143,14 +144,22 @@ export function ParticipationForm({ open, onOpenChange, players, partidos = [] }
                                     <option value="-1">Ninguno</option>
                                     {partidos
                                         .filter(p => p.fecha || p.dia)
-                                        .sort((a, b) => new Date(b.fecha || b.dia).getTime() - new Date(a.fecha || a.dia).getTime())
-                                        .map(p => {
-                                            const dateStr = new Date(p.fecha || p.dia).toLocaleDateString();
-                                            return (
-                                                <option key={p.id} value={p.id}>
-                                                    {p.nombre_rival || p.tipo} - {dateStr}
-                                                </option>
-                                            )
+                                    .sort((a, b) => {
+                                        const dA = parseMatchDate(a.dia, a.mes);
+                                        const dB = parseMatchDate(b.dia, b.mes);
+                                        if (!dA && !dB) return 0;
+                                        if (!dA) return 1;
+                                        if (!dB) return -1;
+                                        return dB.getTime() - dA.getTime();
+                                    })
+                                    .map(p => {
+                                        const d = parseMatchDate(p.dia, p.mes);
+                                        const dateStr = d ? d.toLocaleDateString("es-CO", { day: "2-digit", month: "short" }) : "Sin fecha";
+                                        return (
+                                            <option key={p.id} value={p.id}>
+                                                {p.nombre_rival || p.tipo} - {dateStr}
+                                            </option>
+                                        )
                                         })}
                                 </select>
                             </div>

@@ -18,6 +18,7 @@ import { Input } from "@/components/ui/input"
 import { CheckCircle2, Loader2, ChevronDown } from "lucide-react"
 import { useState, useEffect } from "react"
 import { Player } from "../columns"
+import { parseMatchDate } from "@/lib/utils"
 
 interface CardFormProps {
     open: boolean
@@ -213,9 +214,17 @@ export function CardForm({ open, onOpenChange, players, partidos = [] }: CardFor
                                 <option value="-1">Ninguno</option>
                                 {partidos
                                     .filter(p => p.fecha || p.dia)
-                                    .sort((a, b) => new Date(b.fecha || b.dia).getTime() - new Date(a.fecha || a.dia).getTime())
+                                    .sort((a, b) => {
+                                        const dA = parseMatchDate(a.dia, a.mes);
+                                        const dB = parseMatchDate(b.dia, b.mes);
+                                        if (!dA && !dB) return 0;
+                                        if (!dA) return 1;
+                                        if (!dB) return -1;
+                                        return dB.getTime() - dA.getTime();
+                                    })
                                     .map(p => {
-                                        const dateStr = new Date(p.fecha || p.dia).toLocaleDateString();
+                                        const d = parseMatchDate(p.dia, p.mes);
+                                        const dateStr = d ? d.toLocaleDateString("es-CO", { day: "2-digit", month: "short" }) : "Sin fecha";
                                         return (
                                             <option key={p.id} value={p.id}>
                                                 {p.nombre_rival || p.tipo} - {dateStr}

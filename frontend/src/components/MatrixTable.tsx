@@ -1,7 +1,8 @@
 import * as React from "react"
 import { useNavigate } from "react-router-dom"
-import { ChevronLeft, RefreshCw, Shield, Dumbbell } from "lucide-react"
+import { ChevronLeft, RefreshCw, Shield, Dumbbell, Save } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { useAuth } from "@/contexts/AuthContext"
 
 interface MatrixRow {
     id: number
@@ -27,12 +28,28 @@ interface Partido {
     terminado?: boolean
 }
 
-/** Sort matches: by fecha ISO (dia) first, then by orden */
+const MONTHS = [
+    "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+    "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
+]
+
+function parseMatchDate(dia?: string, mes?: string): Date | null {
+    if (!dia || !mes) return null
+    const m = MONTHS.findIndex(x => x.toLowerCase() === mes.toLowerCase())
+    if (m === -1) return null
+    const d = parseInt(dia, 10)
+    if (isNaN(d)) return null
+    return new Date(new Date().getFullYear(), m, d)
+}
+
+/** Sort matches: chronologically from oldest to newest */
 function sortPartidos(list: Partido[]): Partido[] {
     return [...list].sort((a, b) => {
-        const da = a.dia ? new Date(a.dia).getTime() : Infinity
-        const db = b.dia ? new Date(b.dia).getTime() : Infinity
-        if (da !== db) return da - db
+        const dA = parseMatchDate(a.dia, a.mes)
+        const dB = parseMatchDate(b.dia, b.mes)
+        if (dA && dB) return dA.getTime() - dB.getTime()
+        if (dA && !dB) return -1
+        if (!dA && dB) return 1
         return (a.orden || a.id) - (b.orden || b.id)
     })
 }
@@ -45,6 +62,10 @@ export function MatrixTable() {
     const [partidos, setPartidos] = React.useState<Partido[]>([])
     const [loading, setLoading] = React.useState(true)
     const [lastRefresh, setLastRefresh] = React.useState(new Date())
+
+    const { isAdmin } = useAuth()
+    const [pendingChanges, setPendingChanges] = React.useState<Record<string, Record<number, number>>>({})
+    const [isSaving, setIsSaving] = React.useState(false)
 
     const loadAll = React.useCallback(() => {
         setLoading(true)
@@ -93,20 +114,76 @@ export function MatrixTable() {
         return () => clearInterval(interval)
     }, [loadAll])
 
-    const getCell = (row: MatrixRow, matchId: number) =>
-        row[matchId] ?? row[String(matchId)] ?? 0
+    const getCell = (row: MatrixRow, matchId: number) => {
+        if (pendingChanges[row.apodo]?.[matchId] !== undefined) {
+            return pendingChanges[row.apodo][matchId]
+        }
+        return row[matchId] ?? row[String(matchId)] ?? 0
+    }
+
+    const handleCellToggle = (row: MatrixRow, matchId: number) => {
+        if (!isAdmin) return;
+        const currentVal = getCell(row, matchId);
+        const newVal = currentVal === 1 ? 0 : 1;
+        
+        setPendingChanges(prev => ({
+            ...prev,
+            [row.apodo]: {
+                ...(prev[row.apodo] || {}),
+                [matchId]: newVal
+            }
+        }));
+    }
+
+    const handleSave = async () => {
+        setIsSaving(true);
+        const payload: any[] = [];
+        
+        Object.entries(pendingChanges).forEach(([apodo, matchChanges]) => {
+            const originalRow = matrixData.find(r => r.apodo === apodo);
+            if (!originalRow) return;
+            
+            Object.entries(matchChanges).forEach(([matchIdStr, newVal]) => {
+                const matchId = parseInt(matchIdStr, 10);
+                const oldVal = originalRow[matchId] ?? originalRow[String(matchId)] ?? 0;
+                
+                if (newVal !== oldVal) {
+                    payload.push({
+                        apodo,
+                        id_partido: matchId,
+                        action: newVal === 1 ? "add" : "remove"
+                    });
+                }
+            });
+        });
+        
+        if (payload.length > 0) {
+            try {
+                await fetch("/api/bulk/sync_matrix", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                });
+                setPendingChanges({});
+                loadAll();
+            } catch (err) {
+                console.error(err);
+            }
+        } else {
+            setPendingChanges({});
+        }
+        setIsSaving(false);
+    }
 
     const isFinished = (p: Partido) =>
         p.terminado === true ||
         (p.goles_pjr !== "" && p.goles_pjr !== null &&
          p.goles_rival !== "" && p.goles_rival !== null)
 
-    const formatDate = (dia?: string) => {
-        if (!dia) return null
-        try {
-            const d = new Date(dia)
-            return d.toLocaleDateString("es-CO", { day: "2-digit", month: "short" })
-        } catch { return null }
+    const formatDate = (dia?: string, mes?: string) => {
+        const d = parseMatchDate(dia, mes)
+        if (!d) return null
+        return d.toLocaleDateString("es-CO", { day: "2-digit", month: "short" })
     }
 
     return (
@@ -134,11 +211,19 @@ export function MatrixTable() {
                             </p>
                         </div>
                     </div>
-                    <Button variant="outline" size="sm" onClick={loadAll}
-                        className="border-primary/30 hover:bg-primary/10 text-primary gap-2 shrink-0">
-                        <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
-                        <span className="hidden md:inline">Actualizar</span>
-                    </Button>
+                    <div className="flex items-center gap-2">
+                        {Object.keys(pendingChanges).length > 0 && (
+                            <Button size="sm" onClick={handleSave} disabled={isSaving} className="gap-2 font-bold shadow-md animate-in fade-in zoom-in duration-300">
+                                <Save className="w-4 h-4" />
+                                {isSaving ? "Guardando..." : "Guardar"}
+                            </Button>
+                        )}
+                        <Button variant="outline" size="sm" onClick={loadAll}
+                            className="border-primary/30 hover:bg-primary/10 text-primary gap-2 shrink-0">
+                            <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
+                            <span className="hidden md:inline">Actualizar</span>
+                        </Button>
+                    </div>
                 </div>
 
                 {/* ── Legend ── */}
@@ -195,7 +280,7 @@ export function MatrixTable() {
                                     {partidos.map(p => {
                                         const finished = isFinished(p)
                                         const isTraining = p.tipo === "entrenamiento"
-                                        const dateStr = formatDate(p.dia)
+                                        const dateStr = formatDate(p.dia, p.mes)
                                         const score = finished
                                             ? `${p.goles_pjr}–${p.goles_rival}`
                                             : null
@@ -288,21 +373,28 @@ export function MatrixTable() {
                                         {/* Participation cells */}
                                         {partidos.map(p => {
                                             const val = getCell(row, p.id)
+                                            const isPending = pendingChanges[row.apodo]?.[p.id] !== undefined
+                                            const originalVal = row[p.id] ?? row[String(p.id)] ?? 0
+                                            const isChanged = isPending && val !== originalVal
+                                            
                                             const finished = isFinished(p)
                                             return (
                                                 <td
                                                     key={p.id}
+                                                    onClick={() => handleCellToggle(row, p.id)}
                                                     style={{ width: COL_W, minWidth: COL_W, maxWidth: COL_W }}
-                                                    className={`border-r border-primary/5 text-center align-middle
+                                                    className={`border-r border-primary/5 text-center align-middle transition-colors
+                                                        ${isAdmin ? "cursor-pointer hover:bg-primary/20" : ""}
+                                                        ${isChanged ? "ring-inset ring-2 ring-primary bg-primary/20" : ""}
                                                         ${val === 1
                                                             ? finished ? "bg-green-500/15" : "bg-green-500/10"
                                                             : finished ? "bg-amber-950/10" : "bg-blue-950/5"
                                                         }`}
                                                 >
                                                     {val === 1 ? (
-                                                        <span className="text-green-400 font-black text-base leading-none">✓</span>
+                                                        <span className={`font-black text-base leading-none ${isChanged ? "text-primary" : "text-green-400"}`}>✓</span>
                                                     ) : (
-                                                        <span className="text-muted-foreground/20 text-sm leading-none">–</span>
+                                                        <span className={`text-sm leading-none ${isChanged ? "text-primary/50" : "text-muted-foreground/20"}`}>–</span>
                                                     )}
                                                 </td>
                                             )

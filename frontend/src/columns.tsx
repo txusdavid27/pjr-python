@@ -167,6 +167,11 @@ export const columns = (onViewDetails: (player: Player) => void): ColumnDef<Play
     {
         accessorKey: "balance",
         header: () => <div className="text-right">Saldo General</div>,
+        sortingFn: (rowA, rowB, columnId) => {
+            const a = parseFloat(rowA.getValue(columnId) as string) || 0;
+            const b = parseFloat(rowB.getValue(columnId) as string) || 0;
+            return a - b;
+        },
         cell: ({ row }) => {
             const val = row.getValue("balance") as string | number
             const amount = typeof val === 'string' ? parseFloat(val) : val

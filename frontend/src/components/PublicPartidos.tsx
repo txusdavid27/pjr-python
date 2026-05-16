@@ -37,7 +37,7 @@ const MONTHS = [
     "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
 ]
 
-function parseMatchDate(dia: string, mes: string): Date | null {
+function parseMatchDate(dia?: string, mes?: string): Date | null {
     if (!dia || !mes) return null
     const m = MONTHS.findIndex(x => x.toLowerCase() === mes.toLowerCase())
     if (m === -1) return null
@@ -46,9 +46,47 @@ function parseMatchDate(dia: string, mes: string): Date | null {
     return new Date(new Date().getFullYear(), m, d)
 }
 
+function formatToInputDate(dia?: string, mes?: string) {
+    if (!dia || !mes) return "";
+    const m = MONTHS.findIndex(x => x.toLowerCase() === mes.toLowerCase());
+    if (m === -1) return "";
+    const y = new Date().getFullYear();
+    return `${y}-${String(m + 1).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
+}
+
+function parseFromInputDate(dateStr: string) {
+    if (!dateStr) return { dia: "", mes: "" };
+    const [_, m, d] = dateStr.split('-');
+    return {
+        dia: parseInt(d, 10).toString(),
+        mes: MONTHS[parseInt(m, 10) - 1]
+    };
+}
+
+function formatToInputTime(horaStr?: string) {
+    if (!horaStr) return "";
+    const match = horaStr.match(/(\d+):(\d+)\s*(AM|PM)/i);
+    if (!match) return "";
+    let [_, hStr, m, p] = match;
+    let h = parseInt(hStr, 10);
+    if (p.toUpperCase() === "PM" && h < 12) h += 12;
+    if (p.toUpperCase() === "AM" && h === 12) h = 0;
+    return `${String(h).padStart(2, '0')}:${m}`;
+}
+
+function parseFromInputTime(timeStr: string) {
+    if (!timeStr) return "";
+    let [hStr, m] = timeStr.split(':');
+    let h = parseInt(hStr, 10);
+    const p = h >= 12 ? "PM" : "AM";
+    if (h > 12) h -= 12;
+    if (h === 0) h = 12;
+    return `${h}:${m} ${p}`;
+}
+
 export default function PublicPartidos() {
     const navigate = useNavigate()
-    const { isAdmin, adminLogin, adminLogout } = useAuth()
+    const { isAdmin, adminLogin, adminLogout, playerDoc, playerLogout } = useAuth()
 
     const [showLogin, setShowLogin] = React.useState(false)
 
@@ -225,12 +263,17 @@ export default function PublicPartidos() {
     const [aplazamientoText, setAplazamientoText] = React.useState("")
     const [actionStatus, setActionStatus] = React.useState("")
 
+    const loggedInPlayer = React.useMemo(() => {
+        if (!playerDoc || !players) return null;
+        return players.find(p => p.documento === playerDoc || String(p.contacto_propio || "").replace(/\.0$/, "").trim() === playerDoc);
+    }, [playerDoc, players]);
+
     const openAction = (p: Partido) => {
         if (isAdmin) return  // admins click the edit btn, not the card
         setActionMatch(p)
         setActionTab("asistencia")
         setActionStatus("")
-        setAttendanceForm({ nombre: "", estado: "asiste" })
+        setAttendanceForm({ nombre: loggedInPlayer ? loggedInPlayer.name : "", estado: "asiste" })
         setAplazamientoText("")
     }
 
@@ -299,13 +342,13 @@ export default function PublicPartidos() {
 
                     {/* ── Admin session control ── */}
                     <div className="flex items-center gap-2 shrink-0">
-                        {isAdmin ? (
+                        {(isAdmin || playerDoc) ? (
                             <div className="flex items-center gap-2">
                                 <div className="hidden md:flex items-center gap-1.5 bg-primary/10 border border-primary/30 text-primary text-xs font-bold px-3 py-1.5 rounded-xl">
                                     <ShieldCheck className="h-3.5 w-3.5" />
-                                    Admin activo
+                                    {isAdmin ? "Admin activo" : "Jugador activo"}
                                 </div>
-                                <Button variant="ghost" size="sm" onClick={handleLogout}
+                                <Button variant="ghost" size="sm" onClick={() => isAdmin ? handleLogout() : playerLogout()}
                                     className="text-muted-foreground hover:text-red-400 hover:bg-red-500/10 gap-1.5 text-xs">
                                     <LogOut className="h-3.5 w-3.5" />
                                     <span className="hidden md:inline">Cerrar sesión</span>
@@ -653,35 +696,26 @@ export default function PublicPartidos() {
                         <div className="flex flex-col gap-4 mt-2">
                             <div className="grid grid-cols-2 gap-3">
                                 <div>
-                                    <label className="text-xs font-bold text-muted-foreground mb-1.5 block uppercase tracking-wider">Día</label>
+                                    <label className="text-xs font-bold text-muted-foreground mb-1.5 block uppercase tracking-wider">Fecha</label>
                                     <input
-                                        type="number" min={1} max={31}
+                                        type="date"
                                         className="w-full bg-zinc-900 border border-primary/30 rounded-lg p-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
-                                        value={editForm.dia}
-                                        onChange={e => setEditForm({ ...editForm, dia: e.target.value })}
-                                        placeholder="Ej. 18"
+                                        value={formatToInputDate(editForm.dia, editForm.mes)}
+                                        onChange={e => {
+                                            const { dia, mes } = parseFromInputDate(e.target.value);
+                                            setEditForm({ ...editForm, dia, mes });
+                                        }}
                                     />
                                 </div>
                                 <div>
-                                    <label className="text-xs font-bold text-muted-foreground mb-1.5 block uppercase tracking-wider">Mes</label>
-                                    <select
+                                    <label className="text-xs font-bold text-muted-foreground mb-1.5 block uppercase tracking-wider">Hora</label>
+                                    <input
+                                        type="time"
                                         className="w-full bg-zinc-900 border border-primary/30 rounded-lg p-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
-                                        value={editForm.mes}
-                                        onChange={e => setEditForm({ ...editForm, mes: e.target.value })}>
-                                        <option value="">Selecciona...</option>
-                                        {MONTHS.map(m => <option key={m} value={m}>{m}</option>)}
-                                    </select>
+                                        value={formatToInputTime(editForm.hora)}
+                                        onChange={e => setEditForm({ ...editForm, hora: parseFromInputTime(e.target.value) })}
+                                    />
                                 </div>
-                            </div>
-
-                            <div>
-                                <label className="text-xs font-bold text-muted-foreground mb-1.5 block uppercase tracking-wider">Hora</label>
-                                <input
-                                    className="w-full bg-zinc-900 border border-primary/30 rounded-lg p-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
-                                    value={editForm.hora}
-                                    onChange={e => setEditForm({ ...editForm, hora: e.target.value })}
-                                    placeholder="Ej. 8:00 AM"
-                                />
                             </div>
 
                             <div>
@@ -742,8 +776,9 @@ export default function PublicPartidos() {
                                     <div>
                                         <label className="text-xs font-bold text-muted-foreground mb-1.5 block uppercase tracking-wider">Tu Nombre</label>
                                         <select
-                                            className="w-full bg-zinc-900 border border-primary/30 rounded-lg p-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                                            className={`w-full bg-zinc-900 border border-primary/30 rounded-lg p-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-primary ${loggedInPlayer ? "opacity-60 cursor-not-allowed" : ""}`}
                                             value={attendanceForm.nombre}
+                                            disabled={!!loggedInPlayer}
                                             onChange={e => setAttendanceForm({ ...attendanceForm, nombre: e.target.value })}>
                                             <option value="">Selecciona tu nombre...</option>
                                             {players.map(p => (

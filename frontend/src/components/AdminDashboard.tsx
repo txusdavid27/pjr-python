@@ -104,7 +104,7 @@ export default function AdminDashboard() {
     const navigate = useNavigate()
     const [activeTab, setActiveTab] = React.useState<"players" | "matrix">("players")
     const [data, setData] = React.useState<Player[]>([])
-    const [sorting, setSorting] = React.useState<SortingState>([])
+    const [sorting, setSorting] = React.useState<SortingState>([{ id: "balance", desc: false }])
     const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
     const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
     const [rowSelection, setRowSelection] = React.useState({})

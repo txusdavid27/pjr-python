@@ -334,7 +334,7 @@
     "central": "",
     "dia": "17",
     "escudo": "https://ff993086508a898bfa88-0dc521a9b786f30ca78e3891f22e6188.ssl.cf3.rackcdn.com/5e/c5/17/cc/01/75/8d/70/b2/82/0a/5f/12/5a/4e/b0/68c1e32492794.jpeg",
-    "fairplay_override": null,
+    "fairplay_override": 0,
     "formacion_inicial": "",
     "formacion_secundaria": "",
     "goles_pjr": "1",

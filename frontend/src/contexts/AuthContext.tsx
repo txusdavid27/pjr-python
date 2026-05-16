@@ -25,7 +25,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         () => localStorage.getItem("adminToken") === "true"
     )
     const [playerDoc, setPlayerDoc] = React.useState<string | null>(
-        () => sessionStorage.getItem("playerDoc")
+        () => localStorage.getItem("playerDoc")
     )
 
     const adminLogin = (token: string) => {
@@ -39,12 +39,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     const playerLogin = (doc: string) => {
-        sessionStorage.setItem("playerDoc", doc)
+        localStorage.setItem("playerDoc", doc)
         setPlayerDoc(doc)
     }
 
     const playerLogout = () => {
-        sessionStorage.removeItem("playerDoc")
+        localStorage.removeItem("playerDoc")
         setPlayerDoc(null)
     }
 

@@ -81,10 +81,10 @@ interface AdvancedFilter {
 export default function PublicDashboard() {
     const navigate = useNavigate()
     const location = useLocation()
-    const { isAdmin, playerDoc, playerLogin, playerLogout, adminLogin } = useAuth()
+    const { isAdmin, playerDoc, playerLogin, playerLogout, adminLogin, adminLogout } = useAuth()
     const [data, setData] = React.useState<Player[]>([])
     const [partidos, setPartidos] = React.useState<any[]>([])
-    const [sorting, setSorting] = React.useState<SortingState>([])
+    const [sorting, setSorting] = React.useState<SortingState>([{ id: "balance", desc: false }])
     const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
     const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
     const [rowSelection, setRowSelection] = React.useState({})
@@ -274,6 +274,12 @@ export default function PublicDashboard() {
                 <div className="flex flex-wrap items-center justify-center gap-4 mt-4 md:mt-0 z-10">
 
                     <div className="flex flex-wrap justify-center gap-3 items-center">
+                        {(isAdmin || playerDoc) && (
+                            <Button variant="ghost" onClick={() => isAdmin ? adminLogout() : playerLogout()} className="text-red-400 hover:text-red-300 hover:bg-red-950/30 gap-2 border border-red-900/30">
+                                <LogOut className="w-4 h-4" />
+                                Cerrar Sesión
+                            </Button>
+                        )}
                         <Button
                             variant="outline"
                             size="icon"
