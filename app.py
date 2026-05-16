@@ -1,0 +1,248 @@
+import math
+import os
+import threading
+import requests
+from flask import Flask, request, jsonify, send_from_directory
+from dotenv import load_dotenv
+from db_manager import db_manager
+
+load_dotenv()
+
+app = Flask(__name__, static_folder="frontend/dist")
+PORT = int(os.environ.get("PORT", 5002))
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+PHOTOS_DIR = os.path.join(BASE_DIR, "photos")
+
+def haversine(lat1, lon1, lat2, lon2):
+    R = 6371.0 # Radius of earth in kilometers
+    dlat = math.radians(lat2 - lat1)
+    dlon = math.radians(lon2 - lon1)
+    a = math.sin(dlat / 2)**2 + math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) * math.sin(dlon / 2)**2
+    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+    return R * c * 1000 # returns meters
+
+if not os.path.exists(PHOTOS_DIR):
+    os.makedirs(PHOTOS_DIR)
+
+def _extract_drive_id(url: str) -> str | None:
+    """Extract the Google Drive file ID from any known Drive URL format."""
+    import re
+    patterns = [
+        r"[?&]id=([a-zA-Z0-9_-]+)",          # uc?export=view&id=XXX
+        r"/d/([a-zA-Z0-9_-]+)/",              # /d/XXX/view
+        r"thumbnail\?id=([a-zA-Z0-9_-]+)",   # thumbnail?id=XXX
+    ]
+    for pat in patterns:
+        m = re.search(pat, url)
+        if m:
+            return m.group(1)
+    return None
+
+
+def _normalize_filename(nombre: str) -> str:
+    """Turn a player name into a safe lowercase filename."""
+    import unicodedata, re
+    nfkd = unicodedata.normalize('NFKD', nombre)
+    ascii_str = nfkd.encode('ascii', 'ignore').decode('ascii')
+    safe = re.sub(r'[^a-z0-9]+', '_', ascii_str.lower()).strip('_')
+    return safe + ".jpg" if safe else "default.jpg"
+
+
+def _sync_one_photo(player: dict) -> None:
+    """Download a single player photo if missing or stale."""
+    foto_raw = player.get("foto", "")
+    nombre   = player.get("nombre", "")
+    if not foto_raw or not nombre:
+        return
+
+    file_id = _extract_drive_id(foto_raw)
+    if not file_id:
+        return
+
+    filename = _normalize_filename(nombre)
+    filepath = os.path.join(PHOTOS_DIR, filename)
+
+    # Only download if missing (re-download is triggered by deleting the file)
+    if os.path.exists(filepath) and os.path.getsize(filepath) > 1024:
+        return
+
+    thumb_url = f"https://drive.google.com/thumbnail?id={file_id}&sz=w400-h400"
+    headers = {
+        "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/124.0 Safari/537.36",
+        "Accept": "image/avif,image/webp,image/apng,image/*,*/*;q=0.8",
+    }
+    try:
+        resp = requests.get(thumb_url, headers=headers, timeout=15, allow_redirects=True)
+        resp.raise_for_status()
+        # Reject if Google returned an HTML error page
+        ct = resp.headers.get("Content-Type", "")
+        if "image" not in ct:
+            print(f"  ⚠️ Not an image for {nombre}: {ct}")
+            return
+        with open(filepath, "wb") as f:
+            f.write(resp.content)
+        print(f"  ✅ Saved photo: {filename}")
+    except Exception as e:
+        print(f"  ❌ Failed for {nombre}: {e}")
+
+
+def sync_photos_loop() -> None:
+    """Background daemon: only downloads photos missing from /photos every 60 seconds."""
+    import time
+    while True:
+        try:
+            players = db_manager.get_jugadores()
+            missing = [
+                p for p in players
+                if not os.path.exists(
+                    os.path.join(PHOTOS_DIR, _normalize_filename(p.get("nombre", "")))
+                ) or os.path.getsize(
+                    os.path.join(PHOTOS_DIR, _normalize_filename(p.get("nombre", "")))
+                ) <= 1024
+            ]
+            if missing:
+                print(f"📸 {len(missing)} foto(s) faltantes — descargando...")
+                for p in missing:
+                    _sync_one_photo(p)
+        except Exception as e:
+            print(f"❌ Photo sync error: {e}")
+        time.sleep(60)
+
+
+def sync_balances_loop() -> None:
+    """Background daemon: recalculates all balances every 30 seconds."""
+    import time
+    while True:
+        try:
+            db_manager.recalculate_all_jugadores()
+        except Exception as e:
+            print(f"❌ Balance sync error: {e}")
+        time.sleep(30)
+
+@app.route("/", defaults={'path': ''})
+@app.route("/<path:path>")
+def serve(path):
+    # Try serving static files, otherwise fallback to index.html for React Router
+    if path != "" and os.path.exists(os.path.join(app.static_folder, path)):
+        return send_from_directory(app.static_folder, path)
+    else:
+        return send_from_directory(app.static_folder, 'index.html')
+
+@app.route("/photos/<path:filename>")
+def serve_photo(filename):
+    return send_from_directory(PHOTOS_DIR, filename, max_age=86400)
+
+@app.route("/api/login", methods=["POST"])
+def login():
+    data = request.json or {}
+    username = data.get("username")
+    password = data.get("password")
+    
+    valid_user = os.environ.get("ADMIN_USER", "admin")
+    valid_pass = os.environ.get("ADMIN_PASS", "admin123")
+    
+    if username == valid_user and password == valid_pass:
+        return jsonify({"success": True, "token": "mock-token-123"})
+    return jsonify({"success": False, "message": "Invalid credentials"}), 401
+
+@app.route("/api/crud/<table_name>", methods=["GET"])
+def crud_get_all(table_name):
+    try:
+        if table_name == "jugador":
+            data = db_manager.get_jugadores()
+        else:
+            data = db_manager.get_table(table_name)
+        return jsonify(data)
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)}), 400
+
+@app.route("/api/crud/<table_name>/<int:record_id>", methods=["GET"])
+def crud_get_one(table_name, record_id):
+    try:
+        record = db_manager.get_record(table_name, record_id)
+        if record:
+            return jsonify({"success": True, "data": record})
+        return jsonify({"success": False, "message": "Not found"}), 404
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)}), 400
+
+@app.route("/api/crud/<table_name>", methods=["POST"])
+def crud_create(table_name):
+    data = request.json
+    if not data:
+        return jsonify({"success": False, "message": "No data provided"}), 400
+    try:
+        if isinstance(data, list):
+            ids = []
+            for item in data:
+                ids.append(db_manager.create_record(table_name, item))
+            return jsonify({"success": True, "ids": ids})
+        else:
+            new_id = db_manager.create_record(table_name, data)
+            return jsonify({"success": True, "id": new_id})
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)}), 400
+
+@app.route("/api/crud/<table_name>/<int:record_id>", methods=["PUT"])
+def crud_update(table_name, record_id):
+    data = request.json or {}
+    try:
+        db_manager.update_record(table_name, record_id, data)
+        return jsonify({"success": True})
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)}), 400
+
+@app.route("/api/crud/<table_name>/<int:record_id>", methods=["DELETE"])
+def crud_delete(table_name, record_id):
+    try:
+        db_manager.delete_record(table_name, record_id)
+        return jsonify({"success": True})
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)}), 400
+
+@app.route("/api/check_in_match/<int:partido_id>", methods=["POST"])
+def check_in_match(partido_id):
+    data = request.json
+    if not data or 'lat' not in data or 'lng' not in data or 'apodo' not in data:
+        return jsonify({"success": False, "message": "Faltan datos de ubicación o apodo"}), 400
+        
+    lat = float(data['lat'])
+    lng = float(data['lng'])
+    apodo = data['apodo']
+    
+    try:
+        partido = db_manager.get_record("partido", partido_id)
+        if not partido:
+            return jsonify({"success": False, "message": "Partido no encontrado"}), 404
+            
+        if partido.get("primero_en_llegar"):
+            if partido.get("primero_en_llegar") == apodo:
+                return jsonify({"success": True, "message": "Ya eres el primero en llegar!"})
+            return jsonify({"success": False, "message": f"Alguien más ya llegó primero: {partido.get('primero_en_llegar')}"}), 400
+            
+        plat = partido.get("latitud")
+        plng = partido.get("longitud")
+        
+        if not plat or not plng:
+            return jsonify({"success": False, "message": "El partido no tiene ubicación configurada"}), 400
+            
+        distancia = haversine(lat, lng, float(plat), float(plng))
+        if distancia <= 500:
+            partido["primero_en_llegar"] = apodo
+            db_manager.update_record("partido", partido_id, partido)
+            return jsonify({"success": True, "message": "¡Felicidades! Eres el primero en llegar, ganaste el bono de $5.000."})
+        else:
+            return jsonify({"success": False, "message": f"Estás muy lejos de la cancha. Distancia: {distancia:.0f} metros. Debes estar a menos de 500m."}), 400
+            
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)}), 400
+
+if __name__ == "__main__":
+    print(f"🚀 Server running on http://localhost:{PORT}")
+    print(f"⚡ Mode: Local JSON Database")
+    print("📸 Starting background photo sync (every 60s)...")
+    threading.Thread(target=sync_photos_loop, daemon=True).start()
+    print("💰 Starting background balance sync (every 30s)...")
+    threading.Thread(target=sync_balances_loop, daemon=True).start()
+    app.run(host="0.0.0.0", port=PORT, debug=True, use_reloader=False)

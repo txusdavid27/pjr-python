@@ -1,0 +1,362 @@
+[
+  {
+    "id": 1.0,
+    "nombre": "Andres Moreno Garzon",
+    "apodo": "moreno",
+    "jugados": 0,
+    "estimado": 0,
+    "pagado_total": 0,
+    "balance_bruto": 0
+  },
+  {
+    "id": 2.0,
+    "nombre": "Antonia Rivera Diaz",
+    "apodo": "anto",
+    "jugados": 0,
+    "estimado": 0,
+    "pagado_total": 0,
+    "balance_bruto": 0
+  },
+  {
+    "id": 3.0,
+    "nombre": "NICOLÁS ILLESCAS RAMOS",
+    "apodo": "illescas",
+    "jugados": 0,
+    "estimado": 0,
+    "pagado_total": 0,
+    "balance_bruto": 0
+  },
+  {
+    "id": 5.0,
+    "nombre": "Stevan Ramirez Cajamarca",
+    "apodo": "stevan",
+    "jugados": 0,
+    "estimado": 0,
+    "pagado_total": 0,
+    "balance_bruto": 0
+  },
+  {
+    "id": 6.0,
+    "nombre": "Arnold Arevalo Arenas",
+    "apodo": "arnold",
+    "jugados": 0,
+    "estimado": 0,
+    "pagado_total": 0,
+    "balance_bruto": 0
+  },
+  {
+    "id": 7.0,
+    "nombre": "Santiago Rodriguez Buitrago",
+    "apodo": "santi",
+    "jugados": 0,
+    "estimado": 0,
+    "pagado_total": 0,
+    "balance_bruto": 0
+  },
+  {
+    "id": 8.0,
+    "nombre": "Jesus David Traslavina Fuentes",
+    "apodo": "gsus",
+    "jugados": 0,
+    "estimado": 0,
+    "pagado_total": 0,
+    "balance_bruto": 0
+  },
+  {
+    "id": 9.0,
+    "nombre": "SARA GABRIELA IZQUIERDO PINEDA",
+    "apodo": "sari",
+    "jugados": 0,
+    "estimado": 0,
+    "pagado_total": 0,
+    "balance_bruto": 0
+  },
+  {
+    "id": 10.0,
+    "nombre": "Nicolás Borrero Cantor",
+    "apodo": "borrero",
+    "jugados": 0,
+    "estimado": 0,
+    "pagado_total": 0,
+    "balance_bruto": 0
+  },
+  {
+    "id": 11.0,
+    "nombre": "Juan Diego Tirado",
+    "apodo": "diego",
+    "jugados": 0,
+    "estimado": 0,
+    "pagado_total": 0,
+    "balance_bruto": 0
+  },
+  {
+    "id": 12.0,
+    "nombre": "Juan Sebastian Vargas Vanegas",
+    "apodo": "juanse",
+    "jugados": 0,
+    "estimado": 0,
+    "pagado_total": 0,
+    "balance_bruto": 0
+  },
+  {
+    "id": 14.0,
+    "nombre": "Nicolás Rodríguez Murillo",
+    "apodo": "rodri",
+    "jugados": 0,
+    "estimado": 0,
+    "pagado_total": 0,
+    "balance_bruto": 0
+  },
+  {
+    "id": 15.0,
+    "nombre": "María Natalia Linares Sandoval",
+    "apodo": "nata",
+    "jugados": 0,
+    "estimado": 0,
+    "pagado_total": 0,
+    "balance_bruto": 0
+  },
+  {
+    "id": 17.0,
+    "nombre": "Nicolás Santamaría Reyes",
+    "apodo": "santa",
+    "jugados": 0,
+    "estimado": 0,
+    "pagado_total": 0,
+    "balance_bruto": 0
+  },
+  {
+    "id": 18.0,
+    "nombre": "Guillermo Rodríguez Ramírez",
+    "apodo": "memo",
+    "jugados": 0,
+    "estimado": 0,
+    "pagado_total": 0,
+    "balance_bruto": 0
+  },
+  {
+    "id": 20.0,
+    "nombre": "Juan Ricardo Vásquez Tapias",
+    "apodo": "juanri",
+    "jugados": 0,
+    "estimado": 0,
+    "pagado_total": 0,
+    "balance_bruto": 0
+  },
+  {
+    "id": 21.0,
+    "nombre": "Juan Pablo Bedoya Vallejo",
+    "apodo": "mono",
+    "jugados": 0,
+    "estimado": 0,
+    "pagado_total": 0,
+    "balance_bruto": 0
+  },
+  {
+    "id": 22.0,
+    "nombre": "Juan Pablo Borrero Cantor",
+    "apodo": "juanpa",
+    "jugados": 0,
+    "estimado": 0,
+    "pagado_total": 0,
+    "balance_bruto": 0
+  },
+  {
+    "id": 24.0,
+    "nombre": "Daniel Steeven Chaparro Villabon",
+    "apodo": "dani",
+    "jugados": 0,
+    "estimado": 0,
+    "pagado_total": 0,
+    "balance_bruto": 0
+  },
+  {
+    "id": 25.0,
+    "nombre": "ANDRES SANTIAGO VERGARA RODRIGUEZ",
+    "apodo": "vergara",
+    "jugados": 0,
+    "estimado": 0,
+    "pagado_total": 0,
+    "balance_bruto": 0
+  },
+  {
+    "id": 27.0,
+    "nombre": "Gustavo Mario Monje Camacho",
+    "apodo": "gustavo",
+    "jugados": 0,
+    "estimado": 0,
+    "pagado_total": 0,
+    "balance_bruto": 0
+  },
+  {
+    "id": 29.0,
+    "nombre": "Hugo Leandro Sua Castillo",
+    "apodo": "hugo",
+    "jugados": 0,
+    "estimado": 0,
+    "pagado_total": 0,
+    "balance_bruto": 0
+  },
+  {
+    "id": 31.0,
+    "nombre": "Cristian Felipe Sua Castillo",
+    "apodo": "cris",
+    "jugados": 0,
+    "estimado": 0,
+    "pagado_total": 0,
+    "balance_bruto": 0
+  },
+  {
+    "id": 32.0,
+    "nombre": "CESAR ALEJANDRO DUITAMA GALINDO",
+    "apodo": "alejo",
+    "jugados": 0,
+    "estimado": 0,
+    "pagado_total": 0,
+    "balance_bruto": 0
+  },
+  {
+    "id": 33.0,
+    "nombre": "Andres David Noel Mulett",
+    "apodo": "noel",
+    "jugados": 0,
+    "estimado": 0,
+    "pagado_total": 0,
+    "balance_bruto": 0
+  },
+  {
+    "id": 34.0,
+    "nombre": "Santiago Bejarano",
+    "apodo": "beja",
+    "jugados": 0,
+    "estimado": 0,
+    "pagado_total": 0,
+    "balance_bruto": 0
+  },
+  {
+    "id": 36.0,
+    "nombre": "Felipe Maldonado",
+    "apodo": "maldonado",
+    "jugados": 0,
+    "estimado": 0,
+    "pagado_total": 0,
+    "balance_bruto": 0
+  },
+  {
+    "id": 37.0,
+    "nombre": "Eddy Carvajal",
+    "apodo": "eddy",
+    "jugados": 0,
+    "estimado": 0,
+    "pagado_total": 0,
+    "balance_bruto": 0
+  },
+  {
+    "id": 38.0,
+    "nombre": "Alejandro Colorado ",
+    "apodo": "colorado",
+    "jugados": 0,
+    "estimado": 0,
+    "pagado_total": 0,
+    "balance_bruto": 0
+  },
+  {
+    "id": 39.0,
+    "nombre": "Juan Sebastian Murcia Rodríguez ",
+    "apodo": "murcia",
+    "jugados": 0,
+    "estimado": 0,
+    "pagado_total": 0,
+    "balance_bruto": 0
+  },
+  {
+    "id": 41,
+    "nombre": "Daniel Mauricio Cuéllar Manrique",
+    "apodo": "Cuéllar",
+    "jugados": 0,
+    "estimado": 0,
+    "pagado_total": 0,
+    "balance_bruto": 0
+  },
+  {
+    "id": 42,
+    "nombre": "Juan José Santoya Medina",
+    "apodo": "Juancho",
+    "jugados": 0,
+    "estimado": 0,
+    "pagado_total": 0,
+    "balance_bruto": 0
+  },
+  {
+    "id": 43,
+    "nombre": "Juan David Maldonado",
+    "apodo": "Juancho",
+    "jugados": 0,
+    "estimado": 0,
+    "pagado_total": 0,
+    "balance_bruto": 0
+  },
+  {
+    "id": 44,
+    "nombre": "Javier Daniel Mila Sanchez",
+    "apodo": "MILA",
+    "jugados": 0,
+    "estimado": 0,
+    "pagado_total": 0,
+    "balance_bruto": 0
+  },
+  {
+    "id": 45,
+    "nombre": "Iván Santiago Ruiz Cardozo",
+    "apodo": "Santy",
+    "jugados": 0,
+    "estimado": 0,
+    "pagado_total": 0,
+    "balance_bruto": 0
+  },
+  {
+    "id": 46,
+    "nombre": "JUAN DIEGO FONSECA GRANADOS",
+    "apodo": "J.Fonseca",
+    "jugados": 0,
+    "estimado": 0,
+    "pagado_total": 0,
+    "balance_bruto": 0
+  },
+  {
+    "id": 47,
+    "nombre": "Mariana Serrano Pérez",
+    "apodo": "Mari",
+    "jugados": 0,
+    "estimado": 0,
+    "pagado_total": 0,
+    "balance_bruto": 0
+  },
+  {
+    "id": 48,
+    "nombre": "Santiago Castañeda Carreño",
+    "apodo": "Castañeda",
+    "jugados": 0,
+    "estimado": 0,
+    "pagado_total": 0,
+    "balance_bruto": 0
+  },
+  {
+    "id": 49,
+    "nombre": "Laura Juliana Morales Sánchez",
+    "apodo": "Juli",
+    "jugados": 0,
+    "estimado": 0,
+    "pagado_total": 0,
+    "balance_bruto": 0
+  },
+  {
+    "id": 50,
+    "nombre": "Tomás López Ospina",
+    "apodo": "López ",
+    "jugados": 0,
+    "estimado": 0,
+    "pagado_total": 0,
+    "balance_bruto": 0
+  }
+]

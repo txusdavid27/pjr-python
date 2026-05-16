@@ -1,0 +1,31 @@
+#!/usr/bin/expect -f
+set timeout -1
+
+spawn ssh admin@192.168.0.143
+expect {
+    "yes/no" {
+        send "yes\r"
+        exp_continue
+    }
+    "password:" {
+        send "1234\r"
+    }
+}
+
+expect "$ "
+send "curl -fsSL https://tailscale.com/install.sh | sh\r"
+expect "$ "
+
+send "sudo tailscale up\r"
+expect "password"
+send "1234\r"
+
+expect {
+    "To authenticate" {
+        expect "\r"
+    }
+    "$ " {
+        send "exit\r"
+    }
+}
+interact

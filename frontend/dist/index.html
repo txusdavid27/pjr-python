@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en" class="dark">
+
+<head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/png" href="/logo.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PJR Player Management</title>
+  <script type="module" crossorigin src="/assets/index--_TFM5Xb.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-CDvnB45J.css">
+</head>
+
+<body>
+    <script>
+        window.addEventListener('error', function(e) {
+            var el = document.createElement('div');
+            el.style = 'color:red; background:white; position:absolute; top:0; left:0; width:100%; z-index:9999; padding:20px; font-family:monospace; white-space:pre-wrap; border-bottom: 5px solid red;';
+            el.innerText = 'CRASH: ' + e.message + '\n' + e.filename + ':' + e.lineno;
+            document.body.appendChild(el);
+        });
+        window.addEventListener('unhandledrejection', function(e) {
+            var el = document.createElement('div');
+            el.style = 'color:red; background:white; position:absolute; top:0; left:0; width:100%; z-index:9999; padding:20px; font-family:monospace; white-space:pre-wrap; border-bottom: 5px solid red;';
+            el.innerText = 'PROMISE CRASH: ' + e.reason;
+            document.body.appendChild(el);
+        });
+    </script>
+    <div id="root"></div>
+</body>
+
+</html>

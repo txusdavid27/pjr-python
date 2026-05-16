@@ -1,0 +1,10 @@
+#!/usr/bin/expect -f
+set timeout -1
+spawn ssh admin@192.168.0.143 "cd /media/admin/MAXELL8GB/pjr-app-python && pm2 start ecosystem.config.js"
+expect {
+    "password:" {
+        send "1234\r"
+        exp_continue
+    }
+    eof
+}

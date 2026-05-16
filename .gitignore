@@ -1,4 +1,8 @@
 # Byte-compiled / optimized / DLL files
+
+.DS_Store
+
+/frontend/node_modules
 __pycache__/
 *.py[codz]
 *$py.class
@@ -10,7 +14,7 @@ __pycache__/
 .Python
 build/
 develop-eggs/
-dist/
+#dist/
 downloads/
 eggs/
 .eggs/
