@@ -46,7 +46,7 @@ export default function Home() {
     return (
         <div className="min-h-screen text-foreground flex flex-col relative overflow-hidden">
 
-            {/* ── Background Video ── */}
+            {/* ── Background Video (Desktop / Horizontal) ── */}
             <video
                 autoPlay
                 loop
@@ -54,8 +54,20 @@ export default function Home() {
                 playsInline
                 preload="metadata"
                 poster="/logo.png"
-                className="absolute inset-0 w-full h-full object-cover z-0 pointer-events-none select-none"
+                className="hidden md:block absolute inset-0 w-full h-full object-cover z-0 pointer-events-none select-none"
                 src="/Signo_opt.mp4"
+            />
+
+            {/* ── Background Video (Mobile / Vertical) ── */}
+            <video
+                autoPlay
+                loop
+                muted
+                playsInline
+                preload="metadata"
+                poster="/logo.png"
+                className="block md:hidden absolute inset-0 w-full h-full object-cover z-0 pointer-events-none select-none"
+                src="/SignoVertical_opt.mp4"
             />
 
             {/* ── Dark overlay (so the video reads like a shadow behind UI) ── */}
