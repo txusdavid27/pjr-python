@@ -124,7 +124,10 @@ export function MatrixTable() {
     const handleCellToggle = (row: MatrixRow, matchId: number) => {
         if (!isAdmin) return;
         const currentVal = getCell(row, matchId);
-        const newVal = currentVal === 1 ? 0 : 1;
+        let newVal = 0;
+        if (currentVal === 0) newVal = 2; // Vacio -> Confirmado
+        else if (currentVal === 2) newVal = 1; // Confirmado -> Jugado
+        else newVal = 0; // Jugado -> Vacio
         
         setPendingChanges(prev => ({
             ...prev,
@@ -148,10 +151,24 @@ export function MatrixTable() {
                 const oldVal = originalRow[matchId] ?? originalRow[String(matchId)] ?? 0;
                 
                 if (newVal !== oldVal) {
+                    let action = "";
+                    let estado = "1";
+                    
+                    if (newVal === 0) {
+                        action = "remove";
+                    } else if (newVal === 1) {
+                        action = "set";
+                        estado = "1";
+                    } else if (newVal === 2) {
+                        action = "set";
+                        estado = "2";
+                    }
+                    
                     payload.push({
                         apodo,
                         id_partido: matchId,
-                        action: newVal === 1 ? "add" : "remove"
+                        action,
+                        estado
                     });
                 }
             });
@@ -388,11 +405,15 @@ export function MatrixTable() {
                                                         ${isChanged ? "ring-inset ring-2 ring-primary bg-primary/20" : ""}
                                                         ${val === 1
                                                             ? finished ? "bg-green-500/15" : "bg-green-500/10"
-                                                            : finished ? "bg-amber-950/10" : "bg-blue-950/5"
+                                                            : val === 2
+                                                                ? "bg-amber-500/15"
+                                                                : finished ? "bg-amber-950/10" : "bg-blue-950/5"
                                                         }`}
                                                 >
                                                     {val === 1 ? (
-                                                        <span className={`font-black text-base leading-none ${isChanged ? "text-primary" : "text-green-400"}`}>✓</span>
+                                                        <span className={`font-black text-base leading-none ${isChanged ? "text-primary" : "text-green-400"}`} title="Jugó">✓</span>
+                                                    ) : val === 2 ? (
+                                                        <span className={`font-black text-base leading-none ${isChanged ? "text-primary" : "text-amber-400"}`} title="Confirmado">?</span>
                                                     ) : (
                                                         <span className={`text-sm leading-none ${isChanged ? "text-primary/50" : "text-muted-foreground/20"}`}>–</span>
                                                     )}

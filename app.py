@@ -196,7 +196,11 @@ def crud_update(table_name, record_id):
 @app.route("/api/crud/<table_name>/<int:record_id>", methods=["DELETE"])
 def crud_delete(table_name, record_id):
     try:
-        db_manager.delete_record(table_name, record_id)
+        if table_name == "partido":
+            # Cascading delete: removes participaciones and recalculates player debts
+            db_manager.delete_partido_cascading(record_id)
+        else:
+            db_manager.delete_record(table_name, record_id)
         return jsonify({"success": True})
     except Exception as e:
         return jsonify({"success": False, "message": str(e)}), 400

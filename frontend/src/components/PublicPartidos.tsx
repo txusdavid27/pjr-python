@@ -13,6 +13,7 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog"
 import { LoginModal } from "@/components/LoginModal"
+import { MatchForm } from "@/components/MatchForm"
 import { useAuth } from "@/contexts/AuthContext"
 
 interface Partido {
@@ -97,6 +98,8 @@ export default function PublicPartidos() {
         adminLogout()
     }
 
+    const [showMatchForm, setShowMatchForm] = React.useState(false)
+
     // ── Data ────────────────────────────────────────────────
     const [partidos, setPartidos] = React.useState<Partido[]>([])
     const [players, setPlayers] = React.useState<any[]>([])
@@ -144,6 +147,20 @@ export default function PublicPartidos() {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ ...editingMatch, ...editForm }),
+            })
+            setEditingMatch(null)
+            loadData()
+        } catch (e) { console.error(e) }
+        setEditSaving(false)
+    }
+
+    const handleDeleteMatch = async () => {
+        if (!editingMatch) return
+        if (!window.confirm(`¿Seguro que deseas eliminar el evento contra ${editingMatch.nombre_rival}?`)) return
+        setEditSaving(true)
+        try {
+            await fetch(`/api/crud/partido/${editingMatch.id}`, {
+                method: "DELETE",
             })
             setEditingMatch(null)
             loadData()
@@ -371,11 +388,17 @@ export default function PublicPartidos() {
                 {/* ── Admin hint + Fair Play panel ── */}
                 {isAdmin && (
                     <div className="flex flex-col gap-3">
-                        <div className="flex items-center gap-2 bg-primary/5 border border-primary/20 rounded-xl px-4 py-2.5 text-xs text-primary/80">
-                            <Edit className="h-3.5 w-3.5 shrink-0" />
-                            Modo Admin — <strong className="mx-1">✎ Editar</strong> fechas/hora/lugar ·
-                            <strong className="mx-1">⚽ Marcador</strong> resultado ·
-                            <strong className="mx-1">✔ Terminar</strong> cierra el partido
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-primary/5 border border-primary/20 rounded-xl px-4 py-2.5">
+                            <div className="text-xs text-primary/80">
+                                <Edit className="h-3.5 w-3.5 shrink-0 inline mr-1" />
+                                Modo Admin — <strong className="mx-1">✎ Editar</strong> fechas/hora/lugar ·
+                                <strong className="mx-1">⚽ Marcador</strong> resultado ·
+                                <strong className="mx-1">✔ Terminar</strong> cierra el partido
+                            </div>
+                            <Button size="sm" onClick={() => setShowMatchForm(true)} className="bg-primary hover:bg-primary/90 text-primary-foreground gap-2 w-full sm:w-auto shrink-0 shadow-lg shadow-primary/20">
+                                <Calendar className="h-4 w-4" />
+                                Programar Evento
+                            </Button>
                         </div>
 
                         {/* Fair Play Panel */}
@@ -730,10 +753,16 @@ export default function PublicPartidos() {
                                 </select>
                             </div>
 
-                            <Button onClick={handleEditSave} disabled={editSaving}
-                                className="w-full mt-1 font-bold bg-primary text-zinc-950 hover:bg-primary/90 h-11">
-                                {editSaving ? "Guardando..." : "Guardar Cambios"}
-                            </Button>
+                            <div className="flex gap-2 mt-1">
+                                <Button onClick={handleEditSave} disabled={editSaving}
+                                    className="flex-1 font-bold bg-primary text-zinc-950 hover:bg-primary/90 h-11">
+                                    {editSaving ? "Guardando..." : "Guardar Cambios"}
+                                </Button>
+                                <Button onClick={handleDeleteMatch} disabled={editSaving} variant="outline"
+                                    className="flex-[0.4] font-bold text-red-500 border-red-500/30 hover:bg-red-500/10 h-11">
+                                    Eliminar
+                                </Button>
+                            </div>
                         </div>
                     )}
                 </DialogContent>
@@ -832,6 +861,11 @@ export default function PublicPartidos() {
                     )}
                 </DialogContent>
             </Dialog>
+            <MatchForm
+                open={showMatchForm}
+                onOpenChange={setShowMatchForm}
+                partidos={partidos}
+            />
         </div>
     )
 }

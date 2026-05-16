@@ -335,6 +335,40 @@ class DatabaseManager:
         if table_name == "participacion" or table_name == "partido":
             self.rebuild_matrix()
 
+    def delete_partido_cascading(self, partido_id):
+        """
+        Elimina un partido y en cascada todas sus participaciones.
+        Luego recalcula la deuda de todos los jugadores afectados.
+        """
+        affected_apodos = set()
+
+        with self.lock:
+            # 1. Eliminar participaciones del partido
+            participaciones = self._load("participacion")
+            remaining_parts = []
+            for p in participaciones:
+                if str(p.get("id_partido")) == str(partido_id):
+                    apodo = p.get("apodo")
+                    if apodo:
+                        affected_apodos.add(apodo)
+                else:
+                    remaining_parts.append(p)
+            self._save("participacion", remaining_parts)
+
+            # 2. Eliminar el partido
+            partidos = self._load("partido")
+            new_partidos = [p for p in partidos if str(p.get("id")) != str(partido_id)]
+            if len(new_partidos) == len(partidos):
+                raise ValueError(f"Partido {partido_id} not found")
+            self._save("partido", new_partidos)
+
+        # 3. Recalcular deuda de todos los jugadores afectados
+        for apodo in affected_apodos:
+            self.recalculate_jugador(apodo)
+
+        # 4. Reconstruir la matrix
+        self.rebuild_matrix()
+
     # ==========================
     # LÓGICA DE NEGOCIO
     # ==========================
@@ -351,21 +385,53 @@ class DatabaseManager:
         pagos_jugador = [p for p in pagos if p.get("apodo") == apodo]
         aporte_total = sum(float(p.get("valor", 0)) for p in pagos_jugador)
         bonos = sum(float(p.get("valor", 0)) for p in pagos_jugador if p.get("tipo", "").lower() == "bono")
-        pagado_partidos_val = sum(float(p.get("valor", 0)) for p in pagos_jugador if p.get("tipo", "").lower() == "partido")
         
-        partidos_pagos = pagado_partidos_val / 15000
+        # 3. Deuda de Partidos, Amistosos y Entrenamientos
+        deuda_partidos = 0
+        deuda_amistosos = 0
+        deuda_entrenamientos = 0
+        jugados_oficiales = 0
         
-        # 3. Deuda de Partidos & Arqueros
-        costo_total_asistencias = 0
         for p in part_jugador:
-            if str(p.get("rol")).lower() == "arquero":
-                otros_arqueros = [other for other in participaciones if other.get("id_partido") == p.get("id_partido") and str(other.get("rol")).lower() == "arquero"]
-                num_arqueros = len(otros_arqueros) if otros_arqueros else 1
-                costo_total_asistencias += 15000 / num_arqueros
+            estado = str(p.get("estado", "1"))
+            if estado == "2" or estado == "confirmado":
+                continue # Confirmados no pagan todavía
+                
+            id_partido = p.get("id_partido")
+            partido_obj = next((pt for pt in partidos if str(pt.get("id")) == str(id_partido)), None)
+            
+            tipo = "partido"
+            cobro_base = 15000.0
+            
+            if partido_obj:
+                tipo = str(partido_obj.get("tipo", "partido")).lower()
+                try:
+                    cobro_base = float(partido_obj.get("cobro", 15000) or 15000)
+                except:
+                    pass
+            
+            es_arquero = str(p.get("rol")).lower() == "arquero"
+            
+            if tipo == "entrenamiento":
+                # Entrenamientos: No dividen, tarifa plena para todos
+                deuda_entrenamientos += cobro_base
             else:
-                costo_total_asistencias += 15000
-
-        deuda_partidos = costo_total_asistencias - pagado_partidos_val
+                # Amistosos y Oficiales: Arqueros dividen
+                if es_arquero:
+                    otros_arqueros = [other for other in participaciones if other.get("id_partido") == id_partido and str(other.get("rol")).lower() == "arquero" and str(other.get("estado", "1")) not in ["2", "confirmado"]]
+                    num_arqueros = len(otros_arqueros) if otros_arqueros else 1
+                    costo_actual = cobro_base / num_arqueros
+                else:
+                    costo_actual = cobro_base
+                    
+                if tipo == "amistoso":
+                    deuda_amistosos += costo_actual
+                else:
+                    deuda_partidos += costo_actual
+                    jugados_oficiales += 1
+        
+        # Retrocompatibilidad de partidos pagos
+        partidos_pagos = jugados_oficiales
         
         # 4. Amonestaciones
         amon_jugador = [a for a in amonestaciones if a.get("apodo") == apodo]
@@ -402,9 +468,6 @@ class DatabaseManager:
         try: deuda_inscripcion = float(jugador.get("deuda_inscripcion", 0) or 0)
         except: deuda_inscripcion = 0
         
-        try: entrenamientos = float(jugador.get("entrenamientos", 0) or 0)
-        except: entrenamientos = 0
-        
         try: deuda_pasada = float(jugador.get("deuda_pasada", 0) or 0)
         except: deuda_pasada = 0
         
@@ -412,7 +475,7 @@ class DatabaseManager:
         except: abonado = 0
         
         # 8. Totales
-        deuda_total_positiva = deuda_partidos + deuda_tarjetas + deuda_uniformes + deuda_inscripcion + entrenamientos + (pares_de_amarillas * 5000) + deuda_pasada
+        deuda_total_positiva = deuda_partidos + deuda_amistosos + deuda_entrenamientos + deuda_tarjetas + deuda_uniformes + deuda_inscripcion + (pares_de_amarillas * 5000) + deuda_pasada
         balance_neto = aporte_total + abonado + bonos - deuda_total_positiva
         deuda_total = deuda_total_positiva # Positivo representa deuda en UI
         
@@ -423,6 +486,8 @@ class DatabaseManager:
             "disputados": disputados,
             "partidos_pagos": partidos_pagos,
             "deuda_partidos": deuda_partidos,
+            "deuda_amistosos": deuda_amistosos,
+            "entrenamientos": deuda_entrenamientos,
             "amarillas": amarillas,
             "rojas": rojas,
             "amarillas_pagas": amarillas_pagas,
@@ -493,10 +558,12 @@ class DatabaseManager:
                 if not apodo or not id_partido or not action:
                     continue
                     
-                if action == "add":
+                if action == "add" or action == "set":
                     # Check if exists
-                    exists = any(p for p in participaciones if p.get("apodo") == apodo and p.get("id_partido") == id_partido)
-                    if not exists:
+                    part = next((p for p in participaciones if p.get("apodo") == apodo and p.get("id_partido") == id_partido), None)
+                    estado = change.get("estado", "1")
+                    
+                    if not part:
                         new_id = self._get_next_id(participaciones, "id")
                         participaciones.append({
                             "id": new_id,
@@ -504,9 +571,14 @@ class DatabaseManager:
                             "apodo": apodo,
                             "rol": "",
                             "minutos": 0,
-                            "paga": 1
+                            "paga": 1,
+                            "estado": estado
                         })
                         changed_apodos.add(apodo)
+                    else:
+                        if str(part.get("estado", "1")) != str(estado):
+                            part["estado"] = estado
+                            changed_apodos.add(apodo)
                 
                 elif action == "remove":
                     # Remove all matching
@@ -563,9 +635,15 @@ class DatabaseManager:
                     "balance_bruto": balance_bruto
                 }
                 
-                # Partidos dinámicos (0 o 1)
+                # Partidos dinámicos (0, 1 o 2)
                 for id_p in ids_partidos:
-                    participo = 1 if any(int(p.get("id_partido", -1)) == id_p for p in part_jugador) else 0
+                    part = next((p for p in part_jugador if int(p.get("id_partido", -1)) == id_p), None)
+                    if part:
+                        estado = str(part.get("estado", "1"))
+                        participo = 2 if (estado == "2" or estado == "confirmado") else 1
+                    else:
+                        participo = 0
+                        
                     fila_matrix[str(id_p)] = participo
                     
                 nueva_matrix.append(fila_matrix)

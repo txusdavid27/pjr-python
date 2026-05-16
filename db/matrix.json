@@ -1,14 +1,5 @@
 [
   {
-    "id": 1.0,
-    "nombre": "Andres Moreno Garzon",
-    "apodo": "moreno",
-    "jugados": 0,
-    "estimado": 0,
-    "pagado_total": 0,
-    "balance_bruto": 0
-  },
-  {
     "id": 2.0,
     "nombre": "Antonia Rivera Diaz",
     "apodo": "anto",
@@ -261,15 +252,6 @@
     "balance_bruto": 0
   },
   {
-    "id": 39.0,
-    "nombre": "Juan Sebastian Murcia Rodríguez ",
-    "apodo": "murcia",
-    "jugados": 0,
-    "estimado": 0,
-    "pagado_total": 0,
-    "balance_bruto": 0
-  },
-  {
     "id": 41,
     "nombre": "Daniel Mauricio Cuéllar Manrique",
     "apodo": "Cuéllar",
@@ -291,15 +273,6 @@
     "id": 43,
     "nombre": "Juan David Maldonado",
     "apodo": "Juancho",
-    "jugados": 0,
-    "estimado": 0,
-    "pagado_total": 0,
-    "balance_bruto": 0
-  },
-  {
-    "id": 44,
-    "nombre": "Javier Daniel Mila Sanchez",
-    "apodo": "MILA",
     "jugados": 0,
     "estimado": 0,
     "pagado_total": 0,

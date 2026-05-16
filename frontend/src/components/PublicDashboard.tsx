@@ -740,11 +740,12 @@ export default function PublicDashboard() {
                                             const deudaTarjetas = Number((selectedPlayer as any).deuda_tarjetas) || 0
                                             const deudaUniformes = Number((selectedPlayer as any).deuda_uniformes) || 0
                                             const deudaInscripcion = Number((selectedPlayer as any).deuda_inscripcion) || 0
-                                            const deudaEntrenamientos = Number((selectedPlayer as any).deuda_entrenamientos) || 0
+                                            const deudaEntrenamientos = Number((selectedPlayer as any).entrenamientos) || 0
+                                            const deudaAmistosos = Number((selectedPlayer as any).deuda_amistosos) || 0
                                             const abonado = Number((selectedPlayer as any).abonado) || 0
                                             const bonos = Number((selectedPlayer as any).bonos) || 0
                                             // Total debt this season (excluding past season)
-                                            const deudaTemporada = deudaPartidos + deudaTarjetas + deudaUniformes + deudaInscripcion + deudaEntrenamientos
+                                            const deudaTemporada = deudaPartidos + deudaAmistosos + deudaTarjetas + deudaUniformes + deudaInscripcion + deudaEntrenamientos
                                             // BALANCE_NETO from API (most authoritative)
                                             const balanceNeto = Number((selectedPlayer as any).BALANCE_NETO ?? (selectedPlayer as any).balance_neto) || 0
                                             const hasDebt = balanceNeto < 0
@@ -793,17 +794,29 @@ export default function PublicDashboard() {
                                                         </div>
                                                     )}
 
-                                                    {/* Desglose temporada actual */}
+                                                    {/* Desglose temporada actual / Responsabilidades */}
                                                     {deudaTemporada > 0 && (
                                                         <div className="bg-red-950/20 rounded-lg p-4 border border-red-900/30">
                                                             <h4 className="text-xs font-bold text-red-400 uppercase mb-3 flex items-center gap-1">
-                                                                <AlertCircle className="h-3 w-3" /> Desglose Temporada Actual
+                                                                <AlertCircle className="h-3 w-3" /> Responsabilidades
                                                             </h4>
                                                             <div className="grid grid-cols-1 gap-2">
                                                                 {deudaPartidos > 0 && (
                                                                     <div className="flex justify-between text-sm">
-                                                                        <span className="text-muted-foreground">Partidos</span>
+                                                                        <span className="text-muted-foreground">Partidos Oficiales</span>
                                                                         <span className="text-red-400 font-medium">{fmt(deudaPartidos)}</span>
+                                                                    </div>
+                                                                )}
+                                                                {deudaAmistosos > 0 && (
+                                                                    <div className="flex justify-between text-sm">
+                                                                        <span className="text-muted-foreground">Amistosos</span>
+                                                                        <span className="text-red-400 font-medium">{fmt(deudaAmistosos)}</span>
+                                                                    </div>
+                                                                )}
+                                                                {deudaEntrenamientos > 0 && (
+                                                                    <div className="flex justify-between text-sm">
+                                                                        <span className="text-muted-foreground">Entrenamientos</span>
+                                                                        <span className="text-red-400 font-medium">{fmt(deudaEntrenamientos)}</span>
                                                                     </div>
                                                                 )}
                                                                 {deudaTarjetas > 0 && (
@@ -814,7 +827,7 @@ export default function PublicDashboard() {
                                                                 )}
                                                                 {deudaUniformes > 0 && (
                                                                     <div className="flex justify-between text-sm">
-                                                                        <span className="text-muted-foreground">Uniformes</span>
+                                                                        <span className="text-muted-foreground">Uniforme</span>
                                                                         <span className="text-red-400 font-medium">{fmt(deudaUniformes)}</span>
                                                                     </div>
                                                                 )}
@@ -824,15 +837,9 @@ export default function PublicDashboard() {
                                                                         <span className="text-red-400 font-medium">{fmt(deudaInscripcion)}</span>
                                                                     </div>
                                                                 )}
-                                                                {deudaEntrenamientos > 0 && (
-                                                                    <div className="flex justify-between text-sm">
-                                                                        <span className="text-muted-foreground">Entrenamientos</span>
-                                                                        <span className="text-red-400 font-medium">{fmt(deudaEntrenamientos)}</span>
-                                                                    </div>
-                                                                )}
                                                                 <div className="h-px bg-red-800/30 my-1" />
                                                                 <div className="flex justify-between font-bold">
-                                                                    <span className="text-red-300 text-sm">Subtotal temporada</span>
+                                                                    <span className="text-red-300 text-sm">Total Responsabilidades</span>
                                                                     <span className="text-red-400">{fmt(deudaTemporada)}</span>
                                                                 </div>
                                                             </div>
