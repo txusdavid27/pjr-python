@@ -2,9 +2,16 @@ import math
 import os
 import threading
 import requests
+import smtplib
+import glob
+from email.mime.multipart import MIMEMultipart
+from email.mime.base import MIMEBase
+from email.mime.text import MIMEText
+from email import encoders
+from datetime import datetime
 from flask import Flask, request, jsonify, send_from_directory
 from dotenv import load_dotenv
-from db_manager import db_manager
+from db_manager import db_manager, set_email_notifier
 
 load_dotenv()
 
@@ -119,6 +126,72 @@ def sync_balances_loop() -> None:
         except Exception as e:
             print(f"❌ Balance sync error: {e}")
         time.sleep(30)
+
+
+class DbEmailNotifier:
+    """
+    Envía un correo con todos los archivos JSON de la DB cada vez que
+    haya un cambio. El envío se demora 60s (debounce) para agrupar
+    múltiples cambios seguidos en un solo correo.
+
+    Requiere en .env:
+        BACKUP_EMAIL_USER = cuenta Gmail remitente (ej: mibkp@gmail.com)
+        BACKUP_EMAIL_PASS = App Password de 16 caracteres generada en Google
+    """
+    DEBOUNCE_SECONDS = 60
+    DEST_EMAIL = "futbolpjr@gmail.com"
+    DB_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "db")
+
+    def __init__(self):
+        self._timer = None
+        self._lock = threading.Lock()
+        self.sender_email = os.environ.get("BACKUP_EMAIL_USER", "")
+        self.sender_pass  = os.environ.get("BACKUP_EMAIL_PASS", "")
+
+    def schedule(self):
+        """Reinicia el timer de debounce cada vez que hay un cambio."""
+        with self._lock:
+            if self._timer:
+                self._timer.cancel()
+            self._timer = threading.Timer(self.DEBOUNCE_SECONDS, self._send)
+            self._timer.daemon = True
+            self._timer.start()
+
+    def _send(self):
+        if not self.sender_email or not self.sender_pass:
+            print("⚠️  Email backup: configura BACKUP_EMAIL_USER y BACKUP_EMAIL_PASS en .env")
+            return
+        try:
+            msg = MIMEMultipart()
+            msg["From"]    = self.sender_email
+            msg["To"]      = self.DEST_EMAIL
+            msg["Subject"] = f"📦 PJR DB Backup — {datetime.now().strftime('%Y-%m-%d %H:%M')}"
+
+            body = (
+                f"Copia de seguridad automática de la base de datos PJR FC.\n"
+                f"Fecha: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n"
+                "Se adjuntan todos los archivos JSON de la base de datos."
+            )
+            msg.attach(MIMEText(body, "plain", "utf-8"))
+
+            for filepath in sorted(glob.glob(os.path.join(self.DB_DIR, "*.json"))):
+                filename = os.path.basename(filepath)
+                with open(filepath, "rb") as f:
+                    part = MIMEBase("application", "octet-stream")
+                    part.set_payload(f.read())
+                encoders.encode_base64(part)
+                part.add_header("Content-Disposition", f'attachment; filename="{filename}"')
+                msg.attach(part)
+
+            with smtplib.SMTP_SSL("smtp.gmail.com", 465, timeout=30) as server:
+                server.login(self.sender_email, self.sender_pass)
+                server.sendmail(self.sender_email, self.DEST_EMAIL, msg.as_string())
+
+            print(f"📧 DB backup enviado a {self.DEST_EMAIL}")
+        except Exception as e:
+            print(f"❌ Error enviando backup por email: {e}")
+
+
 
 @app.route("/", defaults={'path': ''})
 @app.route("/<path:path>")
@@ -254,10 +327,13 @@ def bulk_sync_matrix():
         return jsonify({"success": False, "message": str(e)}), 400
 
 if __name__ == "__main__":
-    print(f"🚀 Server running on http://localhost:{PORT}")
-    print(f"⚡ Mode: Local JSON Database")
-    print("📸 Starting background photo sync (every 60s)...")
+    print(f"\U0001f680 Server running on http://localhost:{PORT}")
+    print(f"\u26a1 Mode: Local JSON Database")
+    print("\U0001f4f8 Starting background photo sync (every 60s)...")
     threading.Thread(target=sync_photos_loop, daemon=True).start()
-    print("💰 Starting background balance sync (every 30s)...")
+    print("\U0001f4b0 Starting background balance sync (every 30s)...")
     threading.Thread(target=sync_balances_loop, daemon=True).start()
+    print("\U0001f4e7 Setting up DB email backup notifier...")
+    notifier = DbEmailNotifier()
+    set_email_notifier(notifier)
     app.run(host="0.0.0.0", port=PORT, debug=True, use_reloader=False)

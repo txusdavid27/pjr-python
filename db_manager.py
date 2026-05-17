@@ -4,6 +4,13 @@ import threading
 import re
 import unicodedata
 
+# Referencia al notificador de email (se inyecta desde app.py al iniciar)
+_email_notifier = None
+
+def set_email_notifier(notifier):
+    global _email_notifier
+    _email_notifier = notifier
+
 class DatabaseManager:
     def __init__(self, db_dir="db"):
         self.db_dir = db_dir
@@ -50,6 +57,9 @@ class DatabaseManager:
         filepath = os.path.join(self.db_dir, f"{table}.json")
         with open(filepath, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=2, ensure_ascii=False)
+        # Notificar cambio en la base de datos (debounced)
+        if _email_notifier and table not in ("matrix",):
+            _email_notifier.schedule()
 
     def _get_next_id(self, table_data, id_field="id"):
         if not table_data:
