@@ -4,6 +4,10 @@ test_email_backup.py
 
 .DS_Store
 
+/db/
+
+
+
 /frontend/node_modules
 __pycache__/
 *.py[codz]
