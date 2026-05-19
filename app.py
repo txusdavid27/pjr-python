@@ -133,20 +133,18 @@ class DbEmailNotifier:
     Envía un correo con todos los archivos JSON de la DB cada vez que
     haya un cambio. El envío se demora 60s (debounce) para agrupar
     múltiples cambios seguidos en un solo correo.
-
-    Requiere en .env:
-        BACKUP_EMAIL_USER = cuenta Gmail remitente (ej: mibkp@gmail.com)
-        BACKUP_EMAIL_PASS = App Password de 16 caracteres generada en Google
     """
     DEBOUNCE_SECONDS = 60
-    DEST_EMAIL = "futbolpjr@gmail.com"
+    DEST_EMAIL   = "futbolpjr@gmail.com"
+    SENDER_EMAIL = "jedatrasfu@gmail.com"
+    SENDER_PASS  = "lqnp epty ovdg reki"
     DB_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "db")
 
     def __init__(self):
         self._timer = None
         self._lock = threading.Lock()
-        self.sender_email = os.environ.get("BACKUP_EMAIL_USER", "")
-        self.sender_pass  = os.environ.get("BACKUP_EMAIL_PASS", "")
+        self.sender_email = self.SENDER_EMAIL
+        self.sender_pass  = self.SENDER_PASS
 
     def schedule(self):
         """Reinicia el timer de debounce cada vez que hay un cambio."""
@@ -158,9 +156,6 @@ class DbEmailNotifier:
             self._timer.start()
 
     def _send(self):
-        if not self.sender_email or not self.sender_pass:
-            print("⚠️  Email backup: configura BACKUP_EMAIL_USER y BACKUP_EMAIL_PASS en .env")
-            return
         try:
             msg = MIMEMultipart()
             msg["From"]    = self.sender_email

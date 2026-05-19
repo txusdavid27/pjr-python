@@ -1,5 +1,7 @@
 # Byte-compiled / optimized / DLL files
 
+test_email_backup.py
+
 .DS_Store
 
 /frontend/node_modules
