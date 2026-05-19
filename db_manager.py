@@ -61,6 +61,13 @@ class DatabaseManager:
         if _email_notifier and table not in ("matrix",):
             _email_notifier.schedule()
 
+    def _match_id(self, row_id, target_id) -> bool:
+        """Compare IDs tolerating float representation: 31.0 == 31"""
+        try:
+            return int(float(str(row_id))) == int(float(str(target_id)))
+        except (ValueError, TypeError):
+            return str(row_id) == str(target_id)
+
     def _get_next_id(self, table_data, id_field="id"):
         if not table_data:
             return 1
@@ -243,7 +250,7 @@ class DatabaseManager:
         with self.lock:
             data = self._load(table_name)
             for row in data:
-                if str(row.get("id")) == str(record_id):
+                if self._match_id(row.get("id"), record_id):
                     return row
             return None
 
@@ -288,7 +295,7 @@ class DatabaseManager:
             data = self._load(table_name)
             updated = False
             for i, row in enumerate(data):
-                if str(row.get("id")) == str(record_id):
+                if self._match_id(row.get("id"), record_id):
                     old_apodo = row.get("apodo")
                     old_apodo_asist = row.get("apodo_asistencia")
                     data_dict["id"] = row.get("id") # Preservar ID original
@@ -325,7 +332,7 @@ class DatabaseManager:
             new_data = []
             deleted = False
             for row in data:
-                if str(row.get("id")) == str(record_id):
+                if self._match_id(row.get("id"), record_id):
                     old_apodo = row.get("apodo")
                     old_apodo_asist = row.get("apodo_asistencia")
                     deleted = True
@@ -337,12 +344,16 @@ class DatabaseManager:
             self._save(table_name, new_data)
             
         # Trigger recalculations
-        if old_apodo:
+        # Skip recalculate if we just deleted the jugador itself (they no longer exist)
+        if old_apodo and table_name != "jugador":
             self.recalculate_jugador(old_apodo)
-        if old_apodo_asist and old_apodo_asist not in ["nn", "-", "pendiente"]:
+        if old_apodo_asist and old_apodo_asist not in ["nn", "-", "pendiente"] and table_name != "jugador":
             self.recalculate_jugador(old_apodo_asist)
-            
-        if table_name == "participacion" or table_name == "partido":
+
+        if table_name in ("participacion", "partido"):
+            self.rebuild_matrix()
+        elif table_name == "jugador":
+            # Remove the deleted player from the matrix too
             self.rebuild_matrix()
 
     def delete_partido_cascading(self, partido_id):

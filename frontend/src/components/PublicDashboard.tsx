@@ -5,15 +5,17 @@ import {
 import * as React from "react"
 import {
     Activity, AlertCircle, Calendar, ChevronDown,
-    Clock, CreditCard, FileText, Phone, Shirt, Target, Trophy,
-    User, Zap, MapPin, ChevronLeft, LogOut, KeyRound, Search, X, LayoutGrid, List, RefreshCw, Banknote
+    Clock, CreditCard, FileText, Loader2, Phone, Shirt, Target, Trophy,
+    User, Zap, MapPin, ChevronLeft, LogOut, KeyRound, Search, X, LayoutGrid, List, RefreshCw, Banknote, UserPlus, Pencil, Trash2
 } from "lucide-react"
 import { useNavigate, useLocation } from "react-router-dom"
 
 import { Button } from "@/components/ui/button"
 import {
     Dialog,
-    DialogContent
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
 } from "@/components/ui/dialog"
 import {
     DropdownMenu,
@@ -39,6 +41,7 @@ import { PaymentForm } from "@/components/PaymentForm"
 import { CardForm } from "@/components/CardForm"
 import { GoalForm } from "@/components/GoalForm"
 import { ParticipationForm } from "@/components/ParticipationForm"
+import { PlayerForm } from "@/components/PlayerForm"
 
 // Helper for stats bars
 const StatBar = ({ label, value, max = 100, color = "bg-blue-500" }: { label: string, value: number, max?: number, color?: string }) => (
@@ -106,6 +109,12 @@ export default function PublicDashboard() {
     const [isCardOpen, setIsCardOpen] = React.useState(false)
     const [isGoalOpen, setIsGoalOpen] = React.useState(false)
     const [isParticipationOpen, setIsParticipationOpen] = React.useState(false)
+    // Player CRUD
+    const [isPlayerFormOpen, setIsPlayerFormOpen] = React.useState(false)
+    const [playerFormMode, setPlayerFormMode] = React.useState<"add" | "edit">("add")
+    const [editingPlayer, setEditingPlayer] = React.useState<Player | null>(null)
+    const [deleteConfirmPlayer, setDeleteConfirmPlayer] = React.useState<Player | null>(null)
+    const [deleteLoading, setDeleteLoading] = React.useState(false)
 
     React.useEffect(() => {
         if (location.pathname === "/admin" && !isAdmin) {
@@ -129,7 +138,7 @@ export default function PublicDashboard() {
 
     const filteredData = React.useMemo(() => {
         if (!advancedFilter.field || !advancedFilter.value) return data;
-        
+
         return data.filter(player => {
             let fieldVal: any;
             if (advancedFilter.field === "name") {
@@ -139,9 +148,9 @@ export default function PublicDashboard() {
             } else {
                 fieldVal = player[advancedFilter.field as keyof Player];
             }
-            
+
             if (fieldVal === undefined || fieldVal === null) return false;
-            
+
             const strVal = String(fieldVal).toLowerCase();
             const searchVal = advancedFilter.value.toLowerCase();
             const numVal = parseFloat(String(fieldVal));
@@ -229,6 +238,24 @@ export default function PublicDashboard() {
         }
     }
 
+    const handleEditPlayer = (p: Player) => {
+        setEditingPlayer(p)
+        setPlayerFormMode("edit")
+        setIsPlayerFormOpen(true)
+        setIsModalOpen(false)
+    }
+
+    const handleDeletePlayer = async (p: Player) => {
+        setDeleteLoading(true)
+        try {
+            await fetch(`/api/crud/jugador/${p.id}`, { method: "DELETE" })
+            setDeleteConfirmPlayer(null)
+            setIsModalOpen(false)
+            fetchPlayers()
+        } catch (e) { console.error(e) }
+        setDeleteLoading(false)
+    }
+
 
     const table = useReactTable({
         data: filteredData,
@@ -258,7 +285,7 @@ export default function PublicDashboard() {
             <div className="flex-none flex flex-col md:flex-row items-center justify-between gap-4 bg-zinc-950/80 backdrop-blur-md p-5 rounded-2xl border border-primary/30 shadow-[0_0_15px_rgba(188,158,98,0.15)] relative overflow-hidden">
                 {/* Decorative glow */}
                 <div className="absolute top-[-50%] left-[-10%] w-64 h-64 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
-                
+
                 <div className="flex items-center gap-4 z-10">
                     <Button variant="ghost" size="icon" onClick={() => navigate("/")} className="hover:bg-primary/20 text-primary mr-2">
                         <ChevronLeft className="h-6 w-6" />
@@ -296,7 +323,7 @@ export default function PublicDashboard() {
                             <MapPin className="mr-2 h-4 w-4" />
                             Llegada
                         </Button>
-                        
+
                         {isAdmin && (
                             <>
                                 <Button variant="outline" className="border-primary/50 text-primary hover:bg-primary/10" onClick={() => setIsPaymentOpen(true)}>
@@ -310,6 +337,13 @@ export default function PublicDashboard() {
                                 </Button>
                                 <Button variant="outline" className="border-primary/50 text-primary hover:bg-primary/10" onClick={() => setIsCardOpen(true)}>
                                     <AlertCircle className="mr-2 h-4 w-4" /> Tarjeta
+                                </Button>
+                                <Button
+                                    variant="outline"
+                                    className="border-green-500/50 text-green-400 hover:bg-green-500/10 gap-2"
+                                    onClick={() => { setPlayerFormMode("add"); setEditingPlayer(null); setIsPlayerFormOpen(true) }}
+                                >
+                                    <UserPlus className="h-4 w-4" /> Jugador
                                 </Button>
                             </>
                         )}
@@ -453,9 +487,8 @@ export default function PublicDashboard() {
                             <span className="font-bold text-primary">{Object.keys(rowSelection).length}</span>/{data.length} seleccionados
                         </span>
                         {Object.keys(rowSelection).length > 0 && (
-                            <span className={`text-sm font-black ${
-                                selectedTotal < 0 ? "text-red-500" : "text-primary"
-                            }`}>
+                            <span className={`text-sm font-black ${selectedTotal < 0 ? "text-red-500" : "text-primary"
+                                }`}>
                                 {new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 }).format(selectedTotal)}
                             </span>
                         )}
@@ -464,102 +497,101 @@ export default function PublicDashboard() {
             </div>
             {/* ── Table or Card view ── */}
             {viewMode === "table" ? (
-            <div className="flex-1 rounded-2xl border border-primary/20 shadow-lg shadow-black/50 overflow-auto bg-zinc-950/60 backdrop-blur-sm relative z-10">
-                <Table>
-                    <TableHeader className="bg-zinc-950/95 sticky top-0 z-10 border-b border-primary/20 backdrop-blur-md">
-                        {table.getHeaderGroups().map((headerGroup) => (
-                            <TableRow key={headerGroup.id}>
-                                {headerGroup.headers.map((header) => (
-                                    <TableHead key={header.id} className="py-3 text-xs font-bold text-primary/70 uppercase tracking-wider">
-                                        {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-                                    </TableHead>
-                                ))}
-                            </TableRow>
-                        ))}
-                    </TableHeader>
-                    <TableBody>
-                        {table.getRowModel().rows?.length ? (
-                            table.getRowModel().rows.map((row) => (
-                                <TableRow
-                                    key={row.id}
-                                    data-state={row.getIsSelected() && "selected"}
-                                    onClick={(e) => {
-                                        if ((e.target as HTMLElement).closest('[role="checkbox"], [role="menuitem"], button')) return;
-                                        handleViewDetails(row.original)
-                                    }}
-                                    className="cursor-pointer border-b border-primary/10 hover:bg-primary/5 active:bg-primary/10 transition-all duration-150 data-[state=selected]:bg-primary/10 touch-scale"
-                                >
-                                    {row.getVisibleCells().map((cell) => (
-                                        <TableCell key={cell.id} className="py-3">
-                                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                                        </TableCell>
+                <div className="flex-1 rounded-2xl border border-primary/20 shadow-lg shadow-black/50 overflow-auto bg-zinc-950/60 backdrop-blur-sm relative z-10">
+                    <Table>
+                        <TableHeader className="bg-zinc-950/95 sticky top-0 z-10 border-b border-primary/20 backdrop-blur-md">
+                            {table.getHeaderGroups().map((headerGroup) => (
+                                <TableRow key={headerGroup.id}>
+                                    {headerGroup.headers.map((header) => (
+                                        <TableHead key={header.id} className="py-3 text-xs font-bold text-primary/70 uppercase tracking-wider">
+                                            {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                                        </TableHead>
                                     ))}
                                 </TableRow>
-                            ))
-                        ) : (
-                            <TableRow>
-                                <TableCell colSpan={columns(handleViewDetails).length} className="h-24 text-center text-muted-foreground">
-                                    No se encontraron jugadores.
-                                </TableCell>
-                            </TableRow>
-                        )}
-                    </TableBody>
-                </Table>
-            </div>
+                            ))}
+                        </TableHeader>
+                        <TableBody>
+                            {table.getRowModel().rows?.length ? (
+                                table.getRowModel().rows.map((row) => (
+                                    <TableRow
+                                        key={row.id}
+                                        data-state={row.getIsSelected() && "selected"}
+                                        onClick={(e) => {
+                                            if ((e.target as HTMLElement).closest('[role="checkbox"], [role="menuitem"], button')) return;
+                                            handleViewDetails(row.original)
+                                        }}
+                                        className="cursor-pointer border-b border-primary/10 hover:bg-primary/5 active:bg-primary/10 transition-all duration-150 data-[state=selected]:bg-primary/10 touch-scale"
+                                    >
+                                        {row.getVisibleCells().map((cell) => (
+                                            <TableCell key={cell.id} className="py-3">
+                                                {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                            </TableCell>
+                                        ))}
+                                    </TableRow>
+                                ))
+                            ) : (
+                                <TableRow>
+                                    <TableCell colSpan={columns(handleViewDetails).length} className="h-24 text-center text-muted-foreground">
+                                        No se encontraron jugadores.
+                                    </TableCell>
+                                </TableRow>
+                            )}
+                        </TableBody>
+                    </Table>
+                </div>
             ) : (
-            /* ── Mobile Card View ── */
-            <div className="flex-1 overflow-y-auto grid grid-cols-1 sm:grid-cols-2 gap-3 pb-4">
-                {filteredData.length === 0 ? (
-                    <div className="col-span-full text-center py-16 text-muted-foreground">No se encontraron jugadores.</div>
-                ) : filteredData.map((player, idx) => {
-                    const isRotated = player.nombre === "Tomás López Ospina" || player.nombre === "Iván Santiago Ruiz Cardozo"
-                    const bal = parseBalance(player.balance as any)
-                    return (
-                        <div
-                            key={player.id}
-                            onClick={() => handleViewDetails(player)}
-                            className="bg-zinc-950/80 border border-primary/20 rounded-2xl p-4 flex items-center gap-4 cursor-pointer hover:border-primary/50 active:scale-[0.98] transition-all duration-150 shadow-md animate-fade-up touch-scale"
-                            style={{ animationDelay: `${idx * 30}ms` }}
-                        >
-                            <img
-                                src={(player as any).photo || "/logo.png"}
-                                alt={player.nombre}
-                                onError={e => {
-                                    const t = e.currentTarget
-                                    if (!t.src.endsWith("/logo.png")) t.src = "/logo.png"
-                                }}
-                                className={`w-14 h-14 rounded-full object-cover border-2 border-primary/30 bg-zinc-800 shrink-0 ${isRotated ? "rotate-90" : ""}`}
-                            />
-                            <div className="flex-1 min-w-0">
-                                <p className="font-bold text-foreground truncate text-sm">{player.nombre}</p>
-                                {player.apodo && (
-                                    <p className="text-xs text-primary/70 font-medium truncate">&ldquo;{player.apodo}&rdquo;</p>
-                                )}
-                                <div className="flex items-center gap-2 mt-1 flex-wrap">
-                                    {player.posicion && (
-                                        <span className="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded-full font-bold">{player.posicion}</span>
+                /* ── Mobile Card View ── */
+                <div className="flex-1 overflow-y-auto grid grid-cols-1 sm:grid-cols-2 gap-3 pb-4">
+                    {filteredData.length === 0 ? (
+                        <div className="col-span-full text-center py-16 text-muted-foreground">No se encontraron jugadores.</div>
+                    ) : filteredData.map((player, idx) => {
+                        const isRotated = player.nombre === "Tomás López Ospina" || player.nombre === "Iván Santiago Ruiz Cardozo"
+                        const bal = parseBalance(player.balance as any)
+                        return (
+                            <div
+                                key={player.id}
+                                onClick={() => handleViewDetails(player)}
+                                className="bg-zinc-950/80 border border-primary/20 rounded-2xl p-4 flex items-center gap-4 cursor-pointer hover:border-primary/50 active:scale-[0.98] transition-all duration-150 shadow-md animate-fade-up touch-scale"
+                                style={{ animationDelay: `${idx * 30}ms` }}
+                            >
+                                <img
+                                    src={(player as any).photo || "/logo.png"}
+                                    alt={player.nombre}
+                                    onError={e => {
+                                        const t = e.currentTarget
+                                        if (!t.src.endsWith("/logo.png")) t.src = "/logo.png"
+                                    }}
+                                    className={`w-14 h-14 rounded-full object-cover border-2 border-primary/30 bg-zinc-800 shrink-0 ${isRotated ? "rotate-90" : ""}`}
+                                />
+                                <div className="flex-1 min-w-0">
+                                    <p className="font-bold text-foreground truncate text-sm">{player.nombre}</p>
+                                    {player.apodo && (
+                                        <p className="text-xs text-primary/70 font-medium truncate">&ldquo;{player.apodo}&rdquo;</p>
                                     )}
-                                    <span className={`text-xs font-bold ${
-                                        bal < 0 ? "text-red-400" : bal > 0 ? "text-green-400" : "text-muted-foreground"
-                                    }`}>
-                                        {new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 }).format(bal)}
-                                    </span>
-                                    {/* Deuda temporada pasada badge */}
-                                    {((player as any).deuda_pasada || 0) > 0 && (
-                                        <span className="text-[9px] font-black bg-amber-500/20 text-amber-400 border border-amber-500/30 px-1.5 py-0.5 rounded-full whitespace-nowrap">
-                                            ⚠ T.Pasada
+                                    <div className="flex items-center gap-2 mt-1 flex-wrap">
+                                        {player.posicion && (
+                                            <span className="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded-full font-bold">{player.posicion}</span>
+                                        )}
+                                        <span className={`text-xs font-bold ${bal < 0 ? "text-red-400" : bal > 0 ? "text-green-400" : "text-muted-foreground"
+                                            }`}>
+                                            {new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 }).format(bal)}
                                         </span>
-                                    )}
+                                        {/* Deuda temporada pasada badge */}
+                                        {((player as any).deuda_pasada || 0) > 0 && (
+                                            <span className="text-[9px] font-black bg-amber-500/20 text-amber-400 border border-amber-500/30 px-1.5 py-0.5 rounded-full whitespace-nowrap">
+                                                ⚠ T.Pasada
+                                            </span>
+                                        )}
+                                    </div>
+                                </div>
+                                <div className="flex flex-col items-end gap-1 shrink-0">
+                                    <span className="text-xs text-muted-foreground">⚽ {player.goles ?? 0}</span>
+                                    <span className="text-xs text-muted-foreground">🟨 {player.amarillas ?? 0}</span>
                                 </div>
                             </div>
-                            <div className="flex flex-col items-end gap-1 shrink-0">
-                                <span className="text-xs text-muted-foreground">⚽ {player.goles ?? 0}</span>
-                                <span className="text-xs text-muted-foreground">🟨 {player.amarillas ?? 0}</span>
-                            </div>
-                        </div>
-                    )
-                })}
-            </div>
+                        )
+                    })}
+                </div>
             )}
 
             {/* Modals */}
@@ -601,6 +633,29 @@ export default function PublicDashboard() {
                                         <p className={`text-3xl font-bold ${(Number((selectedPlayer as any).BALANCE_NETO) || 0) < 0 ? "text-red-400" : "text-green-400"}`}>
                                             {new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 }).format(parseBalance(selectedPlayer.balance))}
                                         </p>
+                                        {isAdmin && (
+                                            <div className="flex gap-2 mt-2 justify-end">
+                                                <Button size="sm" variant="outline"
+                                                    className="gap-1.5 border-primary/40 text-primary hover:bg-primary/10 text-xs"
+                                                    onClick={() => handleEditPlayer(selectedPlayer)}>
+                                                    <Pencil className="h-3 w-3" /> Editar
+                                                </Button>
+                                                <Button size="sm" variant="outline"
+                                                    className="gap-1.5 border-red-500/40 text-red-400 hover:bg-red-500/10 text-xs"
+                                                    onClick={() => setDeleteConfirmPlayer(selectedPlayer)}>
+                                                    <Trash2 className="h-3 w-3" /> Eliminar
+                                                </Button>
+                                            </div>
+                                        )}
+                                        {!isAdmin && playerDoc && String(selectedPlayer.contacto_propio || "").replace(/\.0$/, "") === playerDoc && (
+                                            <div className="mt-2">
+                                                <Button size="sm" variant="outline"
+                                                    className="gap-1.5 border-primary/40 text-primary hover:bg-primary/10 text-xs"
+                                                    onClick={() => handleEditPlayer(selectedPlayer)}>
+                                                    <Pencil className="h-3 w-3" /> Editar mi perfil
+                                                </Button>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             </div>
@@ -752,29 +807,26 @@ export default function PublicDashboard() {
                                             const hasPastDebt = deudaPasada > 0
 
                                             return (
-                                                <div className={`bg-card p-5 rounded-xl border shadow-sm space-y-3 ${
-                                                    hasDebt ? 'border-red-500/40 ring-1 ring-red-500/20' : 'border-green-500/20'
-                                                }`}>
+                                                <div className={`bg-card p-5 rounded-xl border shadow-sm space-y-3 ${hasDebt ? 'border-red-500/40 ring-1 ring-red-500/20' : 'border-green-500/20'
+                                                    }`}>
                                                     <div className="flex items-center justify-between mb-2">
                                                         <h3 className="font-semibold flex items-center gap-2 text-lg">
                                                             <CreditCard className="h-5 w-5 text-primary" />
                                                             Estado de Cuenta
                                                         </h3>
-                                                        <span className={`px-2 py-1 text-xs font-black rounded-full flex items-center gap-1 ${
-                                                            hasDebt
+                                                        <span className={`px-2 py-1 text-xs font-black rounded-full flex items-center gap-1 ${hasDebt
                                                                 ? 'bg-red-950/60 text-red-400 border border-red-500/30'
                                                                 : 'bg-green-950/60 text-green-400 border border-green-500/30'
-                                                        }`}>
+                                                            }`}>
                                                             {hasDebt ? <><AlertCircle className="h-3 w-3" /> Con Deuda</> : '✓ Al Día'}
                                                         </span>
                                                     </div>
 
                                                     {/* BALANCE NETO — main figure */}
-                                                    <div className={`rounded-xl p-4 text-center ${
-                                                        hasDebt ? 'bg-red-950/30 border border-red-500/20' : 'bg-green-950/30 border border-green-500/20'
-                                                    }`}>
+                                                    <div className={`rounded-xl p-4 text-center ${hasDebt ? 'bg-red-950/30 border border-red-500/20' : 'bg-green-950/30 border border-green-500/20'
+                                                        }`}>
                                                         <p className="text-xs text-muted-foreground uppercase tracking-widest mb-1">Balance Neto</p>
-                                                        <p className={`text-3xl font-black ${ hasDebt ? 'text-red-400' : 'text-green-400' }`}>
+                                                        <p className={`text-3xl font-black ${hasDebt ? 'text-red-400' : 'text-green-400'}`}>
                                                             {fmt(balanceNeto)}
                                                         </p>
                                                         {abonado > 0 && (
@@ -973,6 +1025,48 @@ export default function PublicDashboard() {
                     />
                 </>
             )}
+
+            {/* ── Player Add/Edit Form ── */}
+            <PlayerForm
+                open={isPlayerFormOpen}
+                onOpenChange={setIsPlayerFormOpen}
+                mode={playerFormMode}
+                player={editingPlayer ?? undefined}
+                onSuccess={fetchPlayers}
+            />
+
+            {/* ── Delete Confirmation Dialog ── */}
+            <Dialog open={!!deleteConfirmPlayer} onOpenChange={(o) => !o && setDeleteConfirmPlayer(null)}>
+                <DialogContent className="sm:max-w-[380px] bg-zinc-950 border-red-500/30 text-foreground">
+                    <DialogHeader>
+                        <DialogTitle className="text-red-400 flex items-center gap-2">
+                            <Trash2 className="h-5 w-5" /> Eliminar Jugador
+                        </DialogTitle>
+                    </DialogHeader>
+                    {deleteConfirmPlayer && (
+                        <div className="space-y-4 py-2">
+                            <p className="text-sm text-muted-foreground">
+                                ¿Estás seguro que deseas eliminar a <strong className="text-foreground">{deleteConfirmPlayer.nombre}</strong>?
+                                Esta acción no se puede deshacer.
+                            </p>
+                            <div className="flex gap-2 justify-end">
+                                <Button variant="ghost" onClick={() => setDeleteConfirmPlayer(null)}>
+                                    Cancelar
+                                </Button>
+                                <Button
+                                    variant="outline"
+                                    className="border-red-500/50 text-red-400 hover:bg-red-500/10 gap-2"
+                                    disabled={deleteLoading}
+                                    onClick={() => handleDeletePlayer(deleteConfirmPlayer)}
+                                >
+                                    {deleteLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+                                    Sí, eliminar
+                                </Button>
+                            </div>
+                        </div>
+                    )}
+                </DialogContent>
+            </Dialog>
         </div>
     )
 }

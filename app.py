@@ -4,6 +4,7 @@ import threading
 import requests
 import smtplib
 import glob
+import traceback
 from email.mime.multipart import MIMEMultipart
 from email.mime.base import MIMEBase
 from email.mime.text import MIMEText
@@ -211,7 +212,7 @@ def login():
     valid_pass = os.environ.get("ADMIN_PASS", "admin123")
     
     if username == valid_user and password == valid_pass:
-        return jsonify({"success": True, "token": "mock-token-123"})
+        return jsonify({"success": True, "token": "true"})
     return jsonify({"success": False, "message": "Invalid credentials"}), 401
 
 @app.route("/api/crud/<table_name>", methods=["GET"])
@@ -265,12 +266,13 @@ def crud_update(table_name, record_id):
 def crud_delete(table_name, record_id):
     try:
         if table_name == "partido":
-            # Cascading delete: removes participaciones and recalculates player debts
             db_manager.delete_partido_cascading(record_id)
         else:
             db_manager.delete_record(table_name, record_id)
         return jsonify({"success": True})
     except Exception as e:
+        tb = traceback.format_exc()
+        print(f"\n\u274c DELETE /{table_name}/{record_id} FAILED:\n{tb}")
         return jsonify({"success": False, "message": str(e)}), 400
 
 @app.route("/api/check_in_match/<int:partido_id>", methods=["POST"])
